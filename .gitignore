@@ -1,0 +1,37 @@
+# Build output
+bin/
+obj/
+out/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userprefs
+
+# Rider
+.idea/
+
+# NuGet
+*.nupkg
+packages/
+**/[Pp]ackages/
+
+# Windows App SDK / MSIX
+AppPackages/
+BundleArtifacts/
+*.appx
+*.appxbundle
+*.msix
+*.msixbundle
+
+# App data / local database (never commit user data)
+*.db
+*.db-journal
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log

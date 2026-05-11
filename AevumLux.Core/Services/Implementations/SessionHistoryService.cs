@@ -1,0 +1,31 @@
+using AevumLux.Core.Models;
+using AevumLux.Core.Services.Interfaces;
+
+namespace AevumLux.Core.Services.Implementations;
+
+/// <summary>
+/// In-memory session history store. Registered as a singleton so the history persists
+/// for the lifetime of the application but is cleared on restart.
+/// </summary>
+public sealed class SessionHistoryService : ISessionHistoryService
+{
+    private readonly List<SessionEntry> _entries = [];
+
+    /// <inheritdoc/>
+    public IReadOnlyList<SessionEntry> Entries => _entries.AsReadOnly();
+
+    /// <inheritdoc/>
+    public void AddEntry(SessionEntryType type, string title, string payloadJson)
+    {
+        _entries.Insert(0, new SessionEntry
+        {
+            EntryType = type,
+            Title = title,
+            PayloadJson = payloadJson,
+            CreatedAt = DateTime.UtcNow
+        });
+    }
+
+    /// <inheritdoc/>
+    public void Clear() => _entries.Clear();
+}

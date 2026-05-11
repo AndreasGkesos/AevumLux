@@ -1,0 +1,33 @@
+﻿<Page
+    x:Class="AevumLux.Views.ScopeAnalyser.ScopeAnalyserPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid Padding="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,24">
+            <TextBlock Text="Scope Analyser" Style="{StaticResource TitleTextBlockStyle}" />
+            <TextBlock
+                Text="Understand exactly what each scope in a token grants."
+                Style="{StaticResource BodyTextBlockStyle}"
+                Opacity="0.6" />
+        </StackPanel>
+
+        <StackPanel
+            Grid.Row="1"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Spacing="12">
+            <FontIcon Glyph="&#xE8EF;" FontSize="48" Opacity="0.3" />
+            <TextBlock
+                Text="Coming in a future phase."
+                Style="{StaticResource BodyTextBlockStyle}"
+                Opacity="0.5"
+                HorizontalAlignment="Center" />
+        </StackPanel>
+    </Grid>
+</Page>

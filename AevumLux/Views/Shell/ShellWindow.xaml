@@ -1,0 +1,141 @@
+<Window
+    x:Class="AevumLux.Views.Shell.ShellWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="AevumLux — because your auth flows deserve to be seen">
+
+    <Grid>
+        <NavigationView
+            x:Name="NavView"
+            PaneDisplayMode="Left"
+            IsSettingsVisible="False"
+            IsBackButtonVisible="Collapsed"
+            OpenPaneLength="220"
+            SelectionChanged="NavView_SelectionChanged"
+            Loaded="NavView_Loaded">
+
+            <NavigationView.MenuItems>
+                <NavigationViewItem
+                    Tag="Discovery"
+                    Content="Discovery Explorer"
+                    ToolTipService.ToolTip="Fetch and explore .well-known/openid-configuration">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE773;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem
+                    Tag="JwtDecoder"
+                    Content="JWT Decoder"
+                    ToolTipService.ToolTip="Decode and inspect JWT tokens">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8A4;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem
+                    Tag="TokenValidator"
+                    Content="Token Validator"
+                    ToolTipService.ToolTip="Cryptographically validate tokens against JWKS">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8B3;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem
+                    Tag="FlowSimulator"
+                    Content="Flow Simulator"
+                    ToolTipService.ToolTip="Simulate OIDC and OAuth 2.0 flows step by step">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE768;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItemSeparator />
+
+                <NavigationViewItem
+                    Tag="ClaimsInspector"
+                    Content="Claims Inspector"
+                    ToolTipService.ToolTip="Inspect and categorise token claims">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE946;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem
+                    Tag="JwksExplorer"
+                    Content="JWKS Explorer"
+                    ToolTipService.ToolTip="Explore and understand JSON Web Key Sets">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE72E;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem
+                    Tag="ScopeAnalyser"
+                    Content="Scope Analyser"
+                    ToolTipService.ToolTip="Understand what each scope grants">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8EF;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItemSeparator />
+
+                <NavigationViewItem
+                    Tag="TokenDiff"
+                    Content="Token Diff"
+                    ToolTipService.ToolTip="Compare two tokens side by side">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8C8;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem
+                    Tag="TokenExpiryMonitor"
+                    Content="Expiry Monitor"
+                    ToolTipService.ToolTip="Live countdown timers for token expiry">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE916;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItemSeparator />
+
+                <NavigationViewItem
+                    Tag="ProviderManager"
+                    Content="Providers"
+                    ToolTipService.ToolTip="Save and manage provider configurations">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xECAA;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem
+                    Tag="SessionHistory"
+                    Content="Session History"
+                    ToolTipService.ToolTip="Review tokens and flows from this session">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE81C;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+            </NavigationView.MenuItems>
+
+            <NavigationView.FooterMenuItems>
+                <NavigationViewItem
+                    Tag="Settings"
+                    Content="Settings"
+                    ToolTipService.ToolTip="App settings and preferences">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE713;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+            </NavigationView.FooterMenuItems>
+
+            <Frame x:Name="ContentFrame" />
+        </NavigationView>
+    </Grid>
+</Window>

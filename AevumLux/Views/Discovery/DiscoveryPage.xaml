@@ -1,35 +1,214 @@
 <Page
     x:Class="AevumLux.Views.Discovery.DiscoveryPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:AevumLux.ViewModels">
 
-    <Grid Padding="24">
+    <Grid RowSpacing="0">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
         <!-- Page header -->
-        <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,24">
+        <StackPanel Grid.Row="0" Padding="24,24,24,0" Spacing="2">
             <TextBlock Text="Discovery Explorer" Style="{StaticResource TitleTextBlockStyle}" />
             <TextBlock
-                Text="Fetch and explore any provider's OpenID Connect discovery document."
+                Text="Fetch and inspect any provider's OpenID Connect discovery document."
                 Style="{StaticResource BodyTextBlockStyle}"
                 Opacity="0.6" />
         </StackPanel>
 
-        <!-- Placeholder — full UI built in Phase 1 -->
-        <StackPanel
-            Grid.Row="1"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Spacing="12">
-            <FontIcon Glyph="&#xE773;" FontSize="48" Opacity="0.3" />
-            <TextBlock
-                Text="Enter a provider URL above to fetch its discovery document."
-                Style="{StaticResource BodyTextBlockStyle}"
-                Opacity="0.5"
-                HorizontalAlignment="Center" />
-        </StackPanel>
+        <!-- URL input bar -->
+        <Grid Grid.Row="1" Padding="24,16,24,0" ColumnSpacing="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBox
+                Grid.Column="0"
+                Text="{x:Bind ViewModel.IssuerUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                PlaceholderText="https://accounts.google.com"
+                IsEnabled="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolNegationConverter}}" />
+
+            <Button
+                Grid.Column="1"
+                Content="Fetch"
+                Style="{StaticResource AccentButtonStyle}"
+                Command="{x:Bind ViewModel.FetchCommand}"
+                MinWidth="90" />
+        </Grid>
+
+        <!-- Main content area -->
+        <Grid Grid.Row="2" Padding="24,16,24,24">
+
+            <!-- Empty state -->
+            <StackPanel
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Spacing="12"
+                Visibility="{x:Bind ViewModel.HasResult, Mode=OneWay, Converter={StaticResource BoolToInverseVisibilityConverter}}">
+                <FontIcon Glyph="&#xE773;" FontSize="52" Opacity="0.25" HorizontalAlignment="Center" />
+                <TextBlock
+                    Text="Enter a provider URL and press Fetch"
+                    Style="{StaticResource BodyTextBlockStyle}"
+                    Opacity="0.45"
+                    HorizontalAlignment="Center" />
+                <TextBlock
+                    Text="Try: https://accounts.google.com  or  https://login.microsoftonline.com/common/v2.0"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Opacity="0.3"
+                    HorizontalAlignment="Center"
+                    TextWrapping="Wrap"
+                    MaxWidth="460"
+                    TextAlignment="Center" />
+            </StackPanel>
+
+            <!-- Loading state -->
+            <StackPanel
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Spacing="16"
+                Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                <ProgressRing IsActive="True" Width="40" Height="40" />
+                <TextBlock
+                    Text="Fetching discovery document…"
+                    Style="{StaticResource BodyTextBlockStyle}"
+                    Opacity="0.6"
+                    HorizontalAlignment="Center" />
+            </StackPanel>
+
+            <!-- Error state -->
+            <InfoBar
+                IsOpen="{x:Bind ViewModel.ErrorMessage, Mode=OneWay, Converter={StaticResource StringToBoolConverter}}"
+                Severity="Error"
+                Title="Could not fetch discovery document"
+                Message="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
+                VerticalAlignment="Top"
+                IsClosable="True" />
+
+            <!-- Result: two-panel layout -->
+            <Grid
+                ColumnSpacing="16"
+                Visibility="{x:Bind ViewModel.HasResult, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*" MinWidth="300" />
+                    <ColumnDefinition Width="3*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Left panel: structured grouped output -->
+                <Grid Grid.Column="0" RowSpacing="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock
+                        Grid.Row="0"
+                        Text="{x:Bind ViewModel.FetchedAt, Mode=OneWay}"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Opacity="0.5"
+                        Margin="0,0,0,4" />
+
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{x:Bind ViewModel.Groups, Mode=OneWay}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:DiscoveryGroup">
+                                    <Expander
+                                        HorizontalAlignment="Stretch"
+                                        HorizontalContentAlignment="Stretch"
+                                        IsExpanded="True"
+                                        Margin="0,0,0,8"
+                                        Visibility="{x:Bind HasEntries, Converter={StaticResource BoolToVisibilityConverter}}">
+
+                                        <Expander.Header>
+                                            <TextBlock
+                                                Text="{x:Bind Title}"
+                                                Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                        </Expander.Header>
+
+                                        <ItemsControl ItemsSource="{x:Bind Entries}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="vm:DiscoveryEntry">
+                                                    <Grid
+                                                        ColumnSpacing="8"
+                                                        Padding="0,4,0,4"
+                                                        Visibility="{x:Bind HasValue, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto" MinWidth="140" />
+                                                            <ColumnDefinition Width="*" />
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <TextBlock
+                                                            Grid.Column="0"
+                                                            Text="{x:Bind Label}"
+                                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                                            Opacity="0.65"
+                                                            VerticalAlignment="Top" />
+
+                                                        <TextBlock
+                                                            Grid.Column="1"
+                                                            Text="{x:Bind Value}"
+                                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                                            TextWrapping="Wrap"
+                                                            IsTextSelectionEnabled="True"
+                                                            Foreground="{x:Bind IsKey, Converter={StaticResource BoolToAccentBrushConverter}}" />
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </Expander>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+
+                <!-- Right panel: raw JSON -->
+                <Border
+                    Grid.Column="1"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0" Padding="12,8,8,8">
+                            <TextBlock
+                                Text="Raw JSON"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Opacity="0.6"
+                                VerticalAlignment="Center" />
+                            <Button
+                                HorizontalAlignment="Right"
+                                Click="CopyRawJson_Click"
+                                ToolTipService.ToolTip="Copy to clipboard"
+                                Padding="6">
+                                <FontIcon Glyph="&#xE8C8;" FontSize="14" />
+                            </Button>
+                        </Grid>
+
+                        <ScrollViewer
+                            Grid.Row="1"
+                            HorizontalScrollBarVisibility="Auto"
+                            VerticalScrollBarVisibility="Auto"
+                            Padding="12,0,12,12">
+                            <TextBlock
+                                Text="{x:Bind ViewModel.RawJson, Mode=OneWay}"
+                                FontFamily="Cascadia Code, Consolas, Courier New"
+                                FontSize="12"
+                                IsTextSelectionEnabled="True"
+                                TextWrapping="NoWrap" />
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
     </Grid>
 </Page>

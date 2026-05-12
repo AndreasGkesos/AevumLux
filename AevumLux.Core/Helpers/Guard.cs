@@ -18,13 +18,4 @@ public static class Guard
             throw new ArgumentException("Value must not be null or whitespace.", paramName);
         return value;
     }
-
-    /// <summary>Throws <see cref="ArgumentException"/> if <paramref name="value"/> is not a well-formed absolute URI.</summary>
-    public static string AgainstInvalidUri(string? value, string paramName)
-    {
-        AgainstNullOrWhiteSpace(value, paramName);
-        if (!Uri.TryCreate(value, UriKind.Absolute, out _))
-            throw new ArgumentException($"'{value}' is not a valid absolute URI.", paramName);
-        return value!;
-    }
 }

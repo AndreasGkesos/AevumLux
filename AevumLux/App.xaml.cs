@@ -62,6 +62,7 @@ public partial class App : Application
 
         services.AddSingleton(_ => new LiteDbContext(dbPath));
         services.AddSingleton<ICryptoService, DpapiCryptoService>();
+        services.AddHttpClient<DiscoveryService>();
     }
 
     private static void RegisterRepositories(IServiceCollection services)
@@ -71,8 +72,8 @@ public partial class App : Application
 
     private static void RegisterServices(IServiceCollection services)
     {
-        // Service implementations are registered as each phase is built.
         services.AddSingleton<ISessionHistoryService, SessionHistoryService>();
+        services.AddTransient<IDiscoveryService, DiscoveryService>();
     }
 
     private static void RegisterViewModels(IServiceCollection services)

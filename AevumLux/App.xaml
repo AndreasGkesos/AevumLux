@@ -1,13 +1,21 @@
 <Application
     x:Class="AevumLux.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="using:AevumLux.Converters">
 
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- Global converters available on every page -->
+            <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <converters:BoolToInverseVisibilityConverter x:Key="BoolToInverseVisibilityConverter" />
+            <converters:BoolNegationConverter x:Key="BoolNegationConverter" />
+            <converters:StringToBoolConverter x:Key="StringToBoolConverter" />
+            <converters:BoolToAccentBrushConverter x:Key="BoolToAccentBrushConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using AevumLux.Core.Helpers;
 
 namespace AevumLux.Core.Security;
 
@@ -30,8 +31,6 @@ public sealed class DpapiCryptoService : ICryptoService
 
         var plaintextBytes = Encoding.UTF8.GetBytes(plaintext);
 
-        // ProtectedData.Protect uses DPAPI under the hood.
-        // DataProtectionScope.CurrentUser ensures only this Windows user can decrypt.
         var ciphertextBytes = ProtectedData.Protect(
             userData: plaintextBytes,
             optionalEntropy: _entropy,

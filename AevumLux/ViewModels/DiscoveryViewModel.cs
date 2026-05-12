@@ -22,13 +22,17 @@ public sealed partial class DiscoveryViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(FetchCommand))]
+    [NotifyPropertyChangedFor(nameof(ShowEmptyState))]
     private bool _isBusy;
 
     [ObservableProperty]
     private string? _errorMessage;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowEmptyState))]
     private bool _hasResult;
+
+    public bool ShowEmptyState => !HasResult && !IsBusy;
 
     [ObservableProperty]
     private string _rawJson = string.Empty;
@@ -55,7 +59,8 @@ public sealed partial class DiscoveryViewModel : ObservableObject
 
         try
         {
-            var doc = await _discoveryService.FetchDiscoveryDocumentAsync(IssuerUrl.Trim(), cancellationToken);
+            var issuerUrl = IssuerUrl.Trim();
+            var doc = await _discoveryService.FetchDiscoveryDocumentAsync(issuerUrl, cancellationToken);
 
             RawJson = PrettyPrint(doc.RawJson);
             FetchedAt = $"Fetched {doc.FetchedAt:HH:mm:ss} UTC";
@@ -64,7 +69,7 @@ public sealed partial class DiscoveryViewModel : ObservableObject
 
             _sessionHistory.AddEntry(
                 SessionEntryType.DiscoveryFetched,
-                $"Discovery: {IssuerUrl.Trim()}",
+                $"Discovery: {issuerUrl}",
                 doc.RawJson);
         }
         catch (OperationCanceledException)
@@ -117,12 +122,14 @@ public sealed partial class DiscoveryViewModel : ObservableObject
     private static List<DiscoveryEntry> ToEntries(List<string> values) =>
         values.Select(v => new DiscoveryEntry(string.Empty, v)).ToList();
 
+    private static readonly JsonSerializerOptions _indentedOptions = new() { WriteIndented = true };
+
     private static string PrettyPrint(string json)
     {
         try
         {
             using var doc = JsonDocument.Parse(json);
-            return JsonSerializer.Serialize(doc, new JsonSerializerOptions { WriteIndented = true });
+            return JsonSerializer.Serialize(doc.RootElement, _indentedOptions);
         }
         catch
         {

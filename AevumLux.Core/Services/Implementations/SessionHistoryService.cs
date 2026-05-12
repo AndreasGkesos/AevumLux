@@ -9,6 +9,8 @@ namespace AevumLux.Core.Services.Implementations;
 /// </summary>
 public sealed class SessionHistoryService : ISessionHistoryService
 {
+    private const int MaxEntries = 200;
+
     private readonly List<SessionEntry> _entries = [];
 
     /// <inheritdoc/>
@@ -24,6 +26,9 @@ public sealed class SessionHistoryService : ISessionHistoryService
             PayloadJson = payloadJson,
             CreatedAt = DateTime.UtcNow
         });
+
+        if (_entries.Count > MaxEntries)
+            _entries.RemoveAt(_entries.Count - 1);
     }
 
     /// <inheritdoc/>

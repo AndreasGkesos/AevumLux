@@ -1,3 +1,4 @@
+using AevumLux.Core.Helpers;
 using LiteDB;
 
 namespace AevumLux.Core.Repositories;
@@ -18,8 +19,7 @@ public sealed class LiteDbContext : IDisposable
     /// </summary>
     public LiteDbContext(string databasePath)
     {
-        if (string.IsNullOrWhiteSpace(databasePath))
-            throw new ArgumentException("Database path must not be null or whitespace.", nameof(databasePath));
+        Guard.AgainstNullOrWhiteSpace(databasePath, nameof(databasePath));
 
         var directory = Path.GetDirectoryName(databasePath);
         if (!string.IsNullOrEmpty(directory))
@@ -47,5 +47,6 @@ public sealed class LiteDbContext : IDisposable
         if (_disposed) return;
         _database.Dispose();
         _disposed = true;
+        GC.SuppressFinalize(this);
     }
 }

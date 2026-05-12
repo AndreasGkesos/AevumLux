@@ -32,6 +32,7 @@ public partial class App : Application
         Services = BuildServiceProvider();
 
         var window = new ShellWindow();
+        window.Closed += (_, _) => (Services as IDisposable)?.Dispose();
         window.Activate();
     }
 
@@ -62,7 +63,7 @@ public partial class App : Application
 
         services.AddSingleton(_ => new LiteDbContext(dbPath));
         services.AddSingleton<ICryptoService, DpapiCryptoService>();
-        services.AddHttpClient<DiscoveryService>();
+        services.AddHttpClient<IDiscoveryService, DiscoveryService>();
     }
 
     private static void RegisterRepositories(IServiceCollection services)
@@ -73,7 +74,6 @@ public partial class App : Application
     private static void RegisterServices(IServiceCollection services)
     {
         services.AddSingleton<ISessionHistoryService, SessionHistoryService>();
-        services.AddTransient<IDiscoveryService, DiscoveryService>();
     }
 
     private static void RegisterViewModels(IServiceCollection services)

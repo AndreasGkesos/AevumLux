@@ -16,6 +16,7 @@
             <converters:BoolNegationConverter x:Key="BoolNegationConverter" />
             <converters:StringToBoolConverter x:Key="StringToBoolConverter" />
             <converters:BoolToAccentBrushConverter x:Key="BoolToAccentBrushConverter" />
+            <converters:MatchBorderBrushConverter x:Key="MatchBorderBrushConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

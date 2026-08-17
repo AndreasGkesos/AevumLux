@@ -68,3 +68,21 @@ public sealed class BoolToAccentBrushConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, string language) =>
         throw new NotSupportedException();
 }
+
+/// <summary>
+/// Returns the accent foreground brush when true, or a transparent brush when false.
+/// Used to highlight a matching card without drawing a visible border on non-matches.
+/// </summary>
+public sealed class MatchBorderBrushConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        if (value is true && Application.Current.Resources.TryGetValue("SystemAccentColor", out var accentColor))
+            return new SolidColorBrush((Windows.UI.Color)accentColor);
+
+        return new SolidColorBrush(Colors.Transparent);
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+        throw new NotSupportedException();
+}

@@ -1,3 +1,4 @@
+﻿using AevumLux.Core.Services.Interfaces;
 using AevumLux.Views.Discovery;
 using AevumLux.Views.JwtDecoder;
 using AevumLux.Views.TokenValidator;
@@ -9,6 +10,7 @@ using AevumLux.Views.TokenDiff;
 using AevumLux.Views.ProviderManager;
 using AevumLux.Views.SessionHistory;
 using AevumLux.Views.Settings;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -37,17 +39,46 @@ public sealed partial class ShellWindow : Window
         ["Settings"] = typeof(SettingsPage)
     };
 
+    private readonly IAppSettingsService _appSettings = App.Services.GetRequiredService<IAppSettingsService>();
+    private NavigationViewItem? _flowSimulatorItem;
+
     public ShellWindow()
     {
         InitializeComponent();
         TrySetMicaBackdrop();
         ExtendsContentIntoTitleBar = true;
+        _appSettings.ShowFlowSimulatorChanged += (_, show) => RefreshFlowSimulatorVisibility(show);
     }
 
     private void NavView_Loaded(object sender, RoutedEventArgs e)
     {
+        RefreshFlowSimulatorVisibility(_appSettings.ShowFlowSimulator);
         NavView.SelectedItem = NavView.MenuItems.OfType<NavigationViewItem>().First();
         NavigateTo("Discovery");
+    }
+
+    /// <summary>Adds or removes the Flow Simulator nav item to match the current setting.</summary>
+    private void RefreshFlowSimulatorVisibility(bool show)
+    {
+        if (show)
+        {
+            if (_flowSimulatorItem is null)
+            {
+                _flowSimulatorItem = new NavigationViewItem
+                {
+                    Tag = "FlowSimulator",
+                    Content = "Flow Simulator",
+                    Icon = new FontIcon { Glyph = "\uE768" }
+                };
+                ToolTipService.SetToolTip(_flowSimulatorItem, "Simulate OIDC and OAuth 2.0 flows step by step");
+                NavView.MenuItems.Add(_flowSimulatorItem);
+            }
+        }
+        else if (_flowSimulatorItem is not null)
+        {
+            NavView.MenuItems.Remove(_flowSimulatorItem);
+            _flowSimulatorItem = null;
+        }
     }
 
     private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)

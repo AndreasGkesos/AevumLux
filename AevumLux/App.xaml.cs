@@ -56,13 +56,14 @@ public partial class App : Application
             builder.SetMinimumLevel(LogLevel.Debug);
         });
 
-        var dbPath = Path.Combine(
+        var appDataDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "AevumLux",
-            "aevumlux.db");
+            "AevumLux");
+        var dbPath = Path.Combine(appDataDir, "aevumlux.db");
 
         services.AddSingleton(_ => new LiteDbContext(dbPath));
         services.AddSingleton<ICryptoService, DpapiCryptoService>();
+        services.AddSingleton<IAppSettingsService>(_ => new AppSettingsService(appDataDir));
         services.AddHttpClient<IDiscoveryService, DiscoveryService>();
         services.AddHttpClient<ITokenValidationService, TokenValidationService>();
     }

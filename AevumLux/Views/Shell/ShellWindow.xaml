@@ -18,6 +18,7 @@
             Loaded="NavView_Loaded">
 
             <NavigationView.MenuItems>
+                <!-- Tier 1: core debugging -->
                 <NavigationViewItem
                     Tag="Discovery"
                     Content="Discovery Explorer"
@@ -46,16 +47,17 @@
                 </NavigationViewItem>
 
                 <NavigationViewItem
-                    Tag="FlowSimulator"
-                    Content="Flow Simulator"
-                    ToolTipService.ToolTip="Simulate OIDC and OAuth 2.0 flows step by step">
+                    Tag="SessionHistory"
+                    Content="Session History"
+                    ToolTipService.ToolTip="Review tokens and flows from this session">
                     <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE768;" />
+                        <FontIcon Glyph="&#xE81C;" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
 
                 <NavigationViewItemSeparator />
 
+                <!-- Tier 2: informational / nice-to-have -->
                 <NavigationViewItem
                     Tag="ClaimsInspector"
                     Content="Claims Inspector"
@@ -83,8 +85,6 @@
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
 
-                <NavigationViewItemSeparator />
-
                 <NavigationViewItem
                     Tag="TokenDiff"
                     Content="Token Diff"
@@ -93,8 +93,6 @@
                         <FontIcon Glyph="&#xE8C8;" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
-
-                <NavigationViewItemSeparator />
 
                 <NavigationViewItem
                     Tag="ProviderManager"
@@ -105,14 +103,7 @@
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
 
-                <NavigationViewItem
-                    Tag="SessionHistory"
-                    Content="Session History"
-                    ToolTipService.ToolTip="Review tokens and flows from this session">
-                    <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE81C;" />
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
+                <!-- Tier 3: Flow Simulator — hidden unless enabled in Settings -->
             </NavigationView.MenuItems>
 
             <NavigationView.FooterMenuItems>

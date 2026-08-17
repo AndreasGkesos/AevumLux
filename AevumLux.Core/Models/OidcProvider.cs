@@ -14,6 +14,9 @@ public sealed class OidcProvider
     /// <summary>Gets or sets the provider issuer URL (base URL used for discovery).</summary>
     public string IssuerUrl { get; set; } = string.Empty;
 
+    /// <summary>Gets or sets the provider's JWKS URI, used by Token Validator and JWKS Explorer.</summary>
+    public string? JwksUri { get; set; }
+
     /// <summary>Gets or sets the OAuth 2.0 client ID.</summary>
     public string ClientId { get; set; } = string.Empty;
 

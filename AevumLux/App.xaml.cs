@@ -89,7 +89,6 @@ public partial class App : Application
         services.AddTransient<JwksExplorerViewModel>();
         services.AddTransient<ScopeAnalyserViewModel>();
         services.AddTransient<TokenDiffViewModel>();
-        services.AddTransient<TokenExpiryMonitorViewModel>();
         services.AddTransient<ProviderManagerViewModel>();
         services.AddTransient<SessionHistoryViewModel>();
         services.AddTransient<SettingsViewModel>();

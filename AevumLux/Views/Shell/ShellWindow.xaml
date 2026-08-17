@@ -94,15 +94,6 @@
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
 
-                <NavigationViewItem
-                    Tag="TokenExpiryMonitor"
-                    Content="Expiry Monitor"
-                    ToolTipService.ToolTip="Live countdown timers for token expiry">
-                    <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE916;" />
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
-
                 <NavigationViewItemSeparator />
 
                 <NavigationViewItem

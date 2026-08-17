@@ -20,7 +20,6 @@ A portfolio-grade WinUI 3 desktop application that gives you:
 - JWKS Explorer that makes cryptographic keys tangible
 - Scope analysis with plain English descriptions for all standard OIDC scopes
 - Token diff — paste two tokens and see exactly what changed
-- Live expiry countdown timers for access, ID and refresh tokens
 - Provider Manager with built-in presets for Keycloak, Azure AD, Auth0 and Okta
 - In-session history of every token decoded and every flow run
 
@@ -39,7 +38,6 @@ A portfolio-grade WinUI 3 desktop application that gives you:
 | JWKS Explorer | Visual display of all keys with kid matching against a provided token |
 | Scope Analyser | Plain English description of every scope in a token |
 | Token Diff | Side-by-side diff with green/red highlights for added, removed and changed claims |
-| Expiry Monitor | Live countdown timers with visual expiry alerts |
 | Provider Manager | Save multiple providers and environments with DPAPI-encrypted secrets |
 | Session History | In-session log of all activity — cleared on close unless explicitly saved |
 | Export | Copy tokens as JSON, export discovery docs, save flow reports as Markdown or HTML |

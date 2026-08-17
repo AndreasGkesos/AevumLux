@@ -6,7 +6,6 @@ using AevumLux.Views.ClaimsInspector;
 using AevumLux.Views.JwksExplorer;
 using AevumLux.Views.ScopeAnalyser;
 using AevumLux.Views.TokenDiff;
-using AevumLux.Views.TokenExpiryMonitor;
 using AevumLux.Views.ProviderManager;
 using AevumLux.Views.SessionHistory;
 using AevumLux.Views.Settings;
@@ -33,7 +32,6 @@ public sealed partial class ShellWindow : Window
         ["JwksExplorer"] = typeof(JwksExplorerPage),
         ["ScopeAnalyser"] = typeof(ScopeAnalyserPage),
         ["TokenDiff"] = typeof(TokenDiffPage),
-        ["TokenExpiryMonitor"] = typeof(TokenExpiryMonitorPage),
         ["ProviderManager"] = typeof(ProviderManagerPage),
         ["SessionHistory"] = typeof(SessionHistoryPage),
         ["Settings"] = typeof(SettingsPage)

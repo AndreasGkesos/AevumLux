@@ -74,6 +74,7 @@ public partial class App : Application
     private static void RegisterServices(IServiceCollection services)
     {
         services.AddSingleton<ISessionHistoryService, SessionHistoryService>();
+        services.AddTransient<IJwtService, JwtService>();
     }
 
     private static void RegisterViewModels(IServiceCollection services)

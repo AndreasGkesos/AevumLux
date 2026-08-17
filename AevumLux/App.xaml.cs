@@ -85,7 +85,7 @@ public partial class App : Application
         services.AddTransient<DiscoveryViewModel>();
         services.AddTransient<JwtDecoderViewModel>();
         services.AddTransient<TokenValidatorViewModel>();
-        services.AddTransient<FlowSimulatorViewModel>();
+        services.AddHttpClient<FlowSimulatorViewModel>();
         services.AddTransient<ClaimsInspectorViewModel>();
         services.AddTransient<JwksExplorerViewModel>();
         services.AddTransient<ScopeAnalyserViewModel>();

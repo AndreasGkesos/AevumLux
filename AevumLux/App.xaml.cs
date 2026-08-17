@@ -64,6 +64,7 @@ public partial class App : Application
         services.AddSingleton(_ => new LiteDbContext(dbPath));
         services.AddSingleton<ICryptoService, DpapiCryptoService>();
         services.AddHttpClient<IDiscoveryService, DiscoveryService>();
+        services.AddHttpClient<ITokenValidationService, TokenValidationService>();
     }
 
     private static void RegisterRepositories(IServiceCollection services)

@@ -1,33 +1,200 @@
-﻿<Page
+<Page
     x:Class="AevumLux.Views.TokenValidator.TokenValidatorPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:AevumLux.ViewModels"
+    xmlns:models="using:AevumLux.Core.Models">
 
-    <Grid Padding="24">
+    <Grid RowSpacing="0">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,24">
+        <!-- Page header -->
+        <StackPanel Grid.Row="0" Padding="24,24,24,0" Spacing="2">
             <TextBlock Text="Token Validator" Style="{StaticResource TitleTextBlockStyle}" />
             <TextBlock
-                Text="Cryptographically validate tokens against a provider's JWKS."
+                Text="Cryptographically validate a token's signature, expiry, issuer and audience against a provider's JWKS."
                 Style="{StaticResource BodyTextBlockStyle}"
                 Opacity="0.6" />
         </StackPanel>
 
-        <StackPanel
-            Grid.Row="1"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Spacing="12">
-            <FontIcon Glyph="&#xE8B3;" FontSize="48" Opacity="0.3" />
-            <TextBlock
-                Text="Coming in a future phase."
-                Style="{StaticResource BodyTextBlockStyle}"
-                Opacity="0.5"
-                HorizontalAlignment="Center" />
-        </StackPanel>
+        <!-- Inputs -->
+        <Grid Grid.Row="1" Padding="24,16,24,0" RowSpacing="8" ColumnSpacing="8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBox
+                Grid.Row="0" Grid.Column="0"
+                Text="{x:Bind ViewModel.RawToken, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                PlaceholderText="Paste your JWT here (eyJ…)"
+                FontFamily="Cascadia Code, Consolas, Courier New"
+                FontSize="12"
+                TextWrapping="Wrap"
+                MaxHeight="80"
+                AcceptsReturn="False" />
+
+            <Button
+                Grid.Row="0" Grid.Column="1"
+                Content="Validate"
+                Style="{StaticResource AccentButtonStyle}"
+                Command="{x:Bind ViewModel.ValidateCommand}"
+                MinWidth="90"
+                VerticalAlignment="Stretch" />
+
+            <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="8">
+                <TextBox
+                    Text="{x:Bind ViewModel.JwksUri, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    PlaceholderText="JWKS URI (e.g. https://issuer/.well-known/jwks.json)"
+                    Width="320" />
+                <TextBox
+                    Text="{x:Bind ViewModel.ExpectedIssuer, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    PlaceholderText="Expected issuer (iss)"
+                    Width="240" />
+                <TextBox
+                    Text="{x:Bind ViewModel.ExpectedAudience, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    PlaceholderText="Expected audience (aud) — optional"
+                    Width="240" />
+            </StackPanel>
+        </Grid>
+
+        <!-- Main content -->
+        <Grid Grid.Row="2" Padding="24,16,24,24">
+
+            <!-- Empty state -->
+            <StackPanel
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Spacing="12"
+                Visibility="{x:Bind ViewModel.ShowEmptyState, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                <FontIcon Glyph="&#xE8B3;" FontSize="52" Opacity="0.25" HorizontalAlignment="Center" />
+                <TextBlock
+                    Text="Paste a token and provider details above, then press Validate"
+                    Style="{StaticResource BodyTextBlockStyle}"
+                    Opacity="0.45"
+                    HorizontalAlignment="Center" />
+            </StackPanel>
+
+            <!-- Loading -->
+            <ProgressRing
+                IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
+                Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+                Width="36" Height="36"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center" />
+
+            <!-- Error -->
+            <InfoBar
+                IsOpen="{x:Bind ViewModel.ErrorMessage, Mode=OneWay, Converter={StaticResource StringToBoolConverter}}"
+                Severity="Error"
+                Title="Could not validate token"
+                VerticalAlignment="Top"
+                IsClosable="True">
+                <InfoBar.Content>
+                    <TextBlock
+                        Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
+                        TextWrapping="Wrap"
+                        IsTextSelectionEnabled="True" />
+                </InfoBar.Content>
+            </InfoBar>
+
+            <!-- Result -->
+            <Grid
+                RowSpacing="12"
+                Visibility="{x:Bind ViewModel.HasResult, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- Overall summary -->
+                <Border
+                    Grid.Row="0"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="16,12">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon
+                            Glyph="&#xE73E;"
+                            FontSize="20"
+                            Foreground="{ThemeResource SystemFillColorSuccessBrush}"
+                            Visibility="{x:Bind ViewModel.IsTokenValid, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                        <FontIcon
+                            Glyph="&#xE783;"
+                            FontSize="20"
+                            Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                            Visibility="{x:Bind ViewModel.IsTokenValid, Mode=OneWay, Converter={StaticResource BoolToInverseVisibilityConverter}}" />
+                        <TextBlock
+                            Text="{x:Bind ViewModel.Summary, Mode=OneWay}"
+                            Style="{StaticResource BodyStrongTextBlockStyle}"
+                            Foreground="{x:Bind ViewModel.IsTokenValid, Mode=OneWay, Converter={StaticResource BoolToAccentBrushConverter}}"
+                            TextWrapping="Wrap"
+                            VerticalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Per-check results -->
+                <Border
+                    Grid.Row="1"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="12">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{x:Bind ViewModel.Checks, Mode=OneWay}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="models:ValidationCheck">
+                                    <Grid ColumnSpacing="10" Padding="0,8,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <Grid Grid.Column="0" VerticalAlignment="Top">
+                                            <FontIcon
+                                                Glyph="&#xE73E;"
+                                                FontSize="16"
+                                                Foreground="{ThemeResource SystemFillColorSuccessBrush}"
+                                                Visibility="{x:Bind Passed, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                            <FontIcon
+                                                Glyph="&#xE783;"
+                                                FontSize="16"
+                                                Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                                Visibility="{x:Bind Passed, Converter={StaticResource BoolToInverseVisibilityConverter}}" />
+                                        </Grid>
+
+                                        <StackPanel Grid.Column="1" Spacing="2">
+                                            <TextBlock Text="{x:Bind Name}" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                            <TextBlock
+                                                Text="{x:Bind Description}"
+                                                Style="{StaticResource CaptionTextBlockStyle}"
+                                                Opacity="0.6"
+                                                TextWrapping="Wrap" />
+                                            <TextBlock
+                                                Text="{x:Bind FailureReason}"
+                                                Style="{StaticResource CaptionTextBlockStyle}"
+                                                Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                                TextWrapping="Wrap"
+                                                Visibility="{x:Bind Passed, Converter={StaticResource BoolToInverseVisibilityConverter}}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Border>
+            </Grid>
+        </Grid>
     </Grid>
 </Page>

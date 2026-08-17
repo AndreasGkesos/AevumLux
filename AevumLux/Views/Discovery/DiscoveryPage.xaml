@@ -85,9 +85,15 @@
                 IsOpen="{x:Bind ViewModel.ErrorMessage, Mode=OneWay, Converter={StaticResource StringToBoolConverter}}"
                 Severity="Error"
                 Title="Could not fetch discovery document"
-                Message="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
                 VerticalAlignment="Top"
-                IsClosable="True" />
+                IsClosable="True">
+                <InfoBar.Content>
+                    <TextBlock
+                        Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
+                        TextWrapping="Wrap"
+                        IsTextSelectionEnabled="True" />
+                </InfoBar.Content>
+            </InfoBar>
 
             <!-- Result: two-panel layout -->
             <Grid

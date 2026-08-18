@@ -27,7 +27,7 @@ Navigation is organised into tiers, roughly by how central each page is to real 
 
 ## Known limitations
 
-- **No installer yet for the main app.** `AevumLux.TestIdentityServer` is now auto-published as a self-contained executable by the main app itself (see "Trying Flow Simulator" above), but the main WinUI 3 app still needs to be built and run from Visual Studio — there's no packaged installer or standalone distribution of AevumLux itself yet.
+- **The installer's optional install-time choices (Desktop shortcut, and an uninstall-time "also delete my data" option) don't have UI checkboxes yet.** Both exist as MSI properties (`INSTALLDESKTOPSHORTCUT`, `DELETE_USER_DATA`) with sensible defaults — Desktop shortcut on by default, user data preserved by default — but can currently only be overridden via `msiexec` command-line flags, not through the installer's own dialogs.
 - **A device_code verification edge case in the test server can throw instead of failing cleanly.** Submitting an invalid/expired `user_code` to `AevumLux.TestIdentityServer`'s `/connect/verify` endpoint can hit an `ArgumentNullException` inside OpenIddict's own device-flow internals rather than returning a normal failed result. It's caught and handled as a clean failure, but the underlying cause hasn't been tracked down — see the `TODO` comment in `Program.cs`.
 - **No "decode this token" shortcut between pages.** Flow Simulator can't jump a token it just received straight into JWT Decoder or Claims Inspector — every page in the app is currently parameterless and resolved fresh, so there's no cross-page navigation-with-data mechanism yet. Copy/paste works fine in the meantime.
 - **Session History has no UI.** The backend already logs every Decode/Fetch/Validate action in-session, but there's no page to view that history yet.
@@ -58,6 +58,7 @@ Three projects in one solution:
 - **AevumLux** — the WinUI 3 desktop app. Strict MVVM: Views are XAML only, all logic lives in ViewModels.
 - **AevumLux.Core** — class library with zero UI dependency. All business logic, services, models and repositories live here, injected through interfaces via `Microsoft.Extensions.DependencyInjection`.
 - **AevumLux.TestIdentityServer** — a small, self-hosted OpenIddict-based OAuth/OIDC server used to drive Flow Simulator's live testing. Runs standalone; see its own `SETUP.md`/`SCENARIOS.md`.
+- **AevumLux.Installer** — a WiX Toolset project that packages AevumLux and the published TestIdentityServer into one self-contained MSI installer. Lives outside the `.sln` (a different toolchain, not something you build/debug day to day) — see "Building the installer" below.
 
 App data (`aevumlux.db`, `settings.json`) lives at `%LOCALAPPDATA%\AevumLux\` — the app is unpackaged, so no MSIX/`ApplicationData` persistence is used.
 
@@ -94,6 +95,20 @@ Flow Simulator needs a running OAuth/OIDC server to actually call. This repo inc
 - If you change `AevumLux.TestIdentityServer`'s code, run `republish-testidp.bat` in the repo root to overwrite the published copy the app is using — the app only auto-publishes when that folder is empty, so it won't pick up code changes on its own after the first run.
 
 `AevumLux.TestIdentityServer` itself remains fully independent — it can still be built and run on its own from Visual Studio or `dotnet run`, with no dependency on the main app. See `AevumLux.TestIdentityServer/SETUP.md` for setup details and `SCENARIOS.md` for what each seeded scenario demonstrates.
+
+### Building the installer
+
+For a standalone install with no .NET SDK or Visual Studio required on the target machine, run:
+
+```
+build-installer.bat
+```
+
+from the repo root. This publishes both `AevumLux` and `AevumLux.TestIdentityServer` as self-contained win-x64 executables, then packages them into `AevumLux.Installer\bin\Release\AevumLux.Installer.msi`. The resulting MSI is fully self-contained (embeds its payload) and can be copied/run anywhere.
+
+The installer places `AevumLux.exe` and a bundled, pre-published `TestIdp\` folder side by side in `Program Files\AevumLux\` — the same relative layout as a dev build, so the running app finds the test IdP identically either way. It also copies `ReadMe.txt` and `Scenarios.md` alongside the installed exe, since an installed-only user has no repo to read those from.
+
+Run it again after changing app or test-server code to cut a new installer build. Bump `<Version>` in `AevumLux/AevumLux.csproj` and `Product.wxs`'s `Package/Version` together before a real release — installing a newer version over an older one on the same machine upgrades in place (same install folder, user data untouched); running an older MSI over a newer install is blocked with a clear message instead of silently downgrading.
 
 ---
 

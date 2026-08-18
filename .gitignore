@@ -3,6 +3,7 @@ bin/
 obj/
 out/
 publish/
+AevumLux.Installer/staging/
 
 # Visual Studio
 .vs/

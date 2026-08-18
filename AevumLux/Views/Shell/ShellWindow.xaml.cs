@@ -49,7 +49,15 @@ public sealed partial class ShellWindow : Window
         InitializeComponent();
         TrySetMicaBackdrop();
         ExtendsContentIntoTitleBar = true;
+        SetWindowIcon();
         _appSettings.ShowFlowExplanationsChanged += (_, show) => RefreshFlowExplanationsVisibility(show);
+    }
+
+    private void SetWindowIcon()
+    {
+        var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico");
+        if (File.Exists(iconPath))
+            AppWindow.SetIcon(iconPath);
     }
 
     private void NavView_Loaded(object sender, RoutedEventArgs e)

@@ -4,12 +4,12 @@ using AevumLux.Core.Repositories.Interfaces;
 using AevumLux.Core.Security;
 using AevumLux.Core.Services.Implementations;
 using AevumLux.Core.Services.Interfaces;
+using AevumLux.Services;
 using AevumLux.ViewModels;
 using AevumLux.Views.Shell;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
-using System.IO;
 
 namespace AevumLux;
 
@@ -30,6 +30,9 @@ public partial class App : Application
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         Services = BuildServiceProvider();
+
+        var providerRepository = Services.GetRequiredService<IProviderRepository>();
+        _ = providerRepository.SeedIfMissingAsync(ScenarioProviderSeeds.GetAll());
 
         var window = new ShellWindow();
         window.Closed += (_, _) => (Services as IDisposable)?.Dispose();
@@ -77,6 +80,9 @@ public partial class App : Application
     {
         services.AddSingleton<ISessionHistoryService, SessionHistoryService>();
         services.AddTransient<IJwtService, JwtService>();
+        services.AddSingleton<IAuthorizationRedirectHandler>(_ =>
+            new WebView2AuthorizationRedirectHandler(Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread()));
+        services.AddHttpClient<IFlowSimulatorService, FlowSimulatorService>();
     }
 
     private static void RegisterViewModels(IServiceCollection services)
@@ -85,7 +91,7 @@ public partial class App : Application
         services.AddTransient<DiscoveryViewModel>();
         services.AddTransient<JwtDecoderViewModel>();
         services.AddTransient<TokenValidatorViewModel>();
-        services.AddHttpClient<FlowSimulatorViewModel>();
+        services.AddTransient<FlowSimulatorViewModel>();
         services.AddTransient<ClaimsInspectorViewModel>();
         services.AddTransient<JwksExplorerViewModel>();
         services.AddTransient<ScopeAnalyserViewModel>();

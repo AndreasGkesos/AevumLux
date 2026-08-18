@@ -52,7 +52,9 @@ public sealed partial class ProviderManagerViewModel : ObservableObject
         {
             var providers = await _providerRepository.GetAllAsync();
             Providers.Clear();
-            foreach (var provider in providers)
+            // Scenario providers are seeded for Flow Simulator's picker only — they don't
+            // belong in Provider Manager's regular list.
+            foreach (var provider in providers.Where(p => p.Source == ProviderSource.Manual))
                 Providers.Add(provider);
         }
         catch (Exception ex)

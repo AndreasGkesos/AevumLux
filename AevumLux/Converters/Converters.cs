@@ -1,3 +1,5 @@
+using AevumLux.Core.Models;
+using AevumLux.ViewModels;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
@@ -82,6 +84,88 @@ public sealed class MatchBorderBrushConverter : IValueConverter
 
         return new SolidColorBrush(Colors.Transparent);
     }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+        throw new NotSupportedException();
+}
+
+/// <summary>Converts a <see cref="SimulatedFlowType"/> enum value to its zero-based ComboBox index and back.</summary>
+public sealed class EnumToIndexConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language) =>
+        value is SimulatedFlowType flow ? (int)flow : 0;
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+        value is int index ? (SimulatedFlowType)index : SimulatedFlowType.ClientCredentials;
+}
+
+/// <summary>
+/// Returns Visible when the bound <see cref="SimulatedFlowType"/> matches the string
+/// ConverterParameter (the enum member name), Collapsed otherwise.
+/// </summary>
+public sealed class FlowTypeToVisibilityConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language) =>
+        value is SimulatedFlowType flow && parameter is string target && flow.ToString() == target
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+        throw new NotSupportedException();
+}
+
+/// <summary>Returns Visible when the bound <see cref="SimulatedFlowType"/> uses a browser redirect (Authorization Code + PKCE or Implicit), Collapsed otherwise.</summary>
+public sealed class FlowUsesRedirectUriToVisibilityConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language) =>
+        value is SimulatedFlowType.AuthorizationCodePkce or SimulatedFlowType.Implicit
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+        throw new NotSupportedException();
+}
+
+/// <summary>Returns Visible when the bound <see cref="FlowStepStatus"/> is Success, Collapsed otherwise.</summary>
+public sealed class FlowStepStatusToSuccessVisibilityConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language) =>
+        value is FlowStepStatus.Success ? Visibility.Visible : Visibility.Collapsed;
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+        throw new NotSupportedException();
+}
+
+/// <summary>Returns Visible when the bound <see cref="FlowStepStatus"/> is Failed, Collapsed otherwise.</summary>
+public sealed class FlowStepStatusToFailedVisibilityConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language) =>
+        value is FlowStepStatus.Failed ? Visibility.Visible : Visibility.Collapsed;
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+        throw new NotSupportedException();
+}
+
+/// <summary>Displays an <see cref="OidcProvider"/>'s Name, or a placeholder for the null "type your own" entry.</summary>
+public sealed class ProviderToNameConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language) =>
+        value is OidcProvider provider ? provider.Name : "(Type your own — no scenario provider)";
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+        throw new NotSupportedException();
+}
+
+/// <summary>Returns Visible when the bound value is non-null (and, for strings, non-empty), Collapsed otherwise.</summary>
+public sealed class NullToVisibilityConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language) =>
+        value switch
+        {
+            null => Visibility.Collapsed,
+            string s => string.IsNullOrEmpty(s) ? Visibility.Collapsed : Visibility.Visible,
+            _ => Visibility.Visible,
+        };
 
     public object ConvertBack(object value, Type targetType, object parameter, string language) =>
         throw new NotSupportedException();

@@ -17,6 +17,13 @@
             <converters:StringToBoolConverter x:Key="StringToBoolConverter" />
             <converters:BoolToAccentBrushConverter x:Key="BoolToAccentBrushConverter" />
             <converters:MatchBorderBrushConverter x:Key="MatchBorderBrushConverter" />
+            <converters:EnumToIndexConverter x:Key="EnumToIndexConverter" />
+            <converters:FlowTypeToVisibilityConverter x:Key="FlowTypeToVisibilityConverter" />
+            <converters:FlowUsesRedirectUriToVisibilityConverter x:Key="FlowUsesRedirectUriToVisibilityConverter" />
+            <converters:FlowStepStatusToSuccessVisibilityConverter x:Key="FlowStepStatusToSuccessVisibilityConverter" />
+            <converters:FlowStepStatusToFailedVisibilityConverter x:Key="FlowStepStatusToFailedVisibilityConverter" />
+            <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+            <converters:ProviderToNameConverter x:Key="ProviderToNameConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

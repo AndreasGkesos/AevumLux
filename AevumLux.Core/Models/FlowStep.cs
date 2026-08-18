@@ -27,11 +27,38 @@ public sealed class FlowStep
     /// <summary>Gets or sets the error detail if this step failed.</summary>
     public FlowError? Error { get; set; }
 
+    /// <summary>
+    /// When set, this step demonstrates a real but discouraged/deprecated pattern (Implicit,
+    /// ROPC). Explains where the anti-pattern manifests in this exact step, what the concrete
+    /// risk is, and why modern IdPs/OAuth 2.1 replaced it — shown in the UI alongside the
+    /// step's real request/response so the deprecation isn't just asserted, it's visible.
+    /// </summary>
+    public string? DeprecationWarning { get; set; }
+
     /// <summary>Gets or sets the UTC time this step started executing.</summary>
     public DateTime? StartedAt { get; set; }
 
     /// <summary>Gets or sets the UTC time this step completed.</summary>
     public DateTime? CompletedAt { get; set; }
+
+    /// <summary>
+    /// The equivalent curl command for this step's request, for copy-pasting outside the app.
+    /// Contains any real secret/credential that was part of the request — never share as-is.
+    /// </summary>
+    public string? CurlCommand => Request is null ? null : BuildCurlCommand(Request);
+
+    private static string BuildCurlCommand(HttpRequestDetail request)
+    {
+        var parts = new List<string> { "curl", "-X", request.Method, $"\"{request.Url}\"" };
+
+        foreach (var header in request.Headers)
+            parts.Add($"-H \"{header.Key}: {header.Value}\"");
+
+        if (!string.IsNullOrEmpty(request.Body) && request.Method == "POST")
+            parts.Add($"-d '{request.Body}'");
+
+        return string.Join(" \\\n  ", parts);
+    }
 }
 
 /// <summary>Represents the execution status of a flow step.</summary>
@@ -51,6 +78,13 @@ public sealed class HttpRequestDetail
     public string Url { get; set; } = string.Empty;
     public Dictionary<string, string> Headers { get; set; } = [];
     public string? Body { get; set; }
+
+    /// <summary>
+    /// Per-parameter breakdown of this request's query-string/body fields — name, actual value,
+    /// and a short explanation of what it is and who set it. Only populated for display when
+    /// Flow Simulator's "Show flow explanations" setting is on; empty otherwise.
+    /// </summary>
+    public List<ParameterExplanation> Parameters { get; set; } = [];
 }
 
 /// <summary>Captures the details of an HTTP response for display.</summary>
@@ -60,6 +94,21 @@ public sealed class HttpResponseDetail
     public string ReasonPhrase { get; set; } = string.Empty;
     public Dictionary<string, string> Headers { get; set; } = [];
     public string? Body { get; set; }
+
+    /// <summary>
+    /// Per-field breakdown of this response's body — name, actual value, and a short
+    /// explanation of what it means. Only populated for display when Flow Simulator's
+    /// "Show flow explanations" setting is on; empty otherwise.
+    /// </summary>
+    public List<ParameterExplanation> Parameters { get; set; } = [];
+}
+
+/// <summary>One request or response parameter, explained for the "Show flow explanations" breakdown table.</summary>
+public sealed class ParameterExplanation
+{
+    public string Name { get; set; } = string.Empty;
+    public string Value { get; set; } = string.Empty;
+    public string Explanation { get; set; } = string.Empty;
 }
 
 /// <summary>Describes a flow step failure with context-aware explanation.</summary>

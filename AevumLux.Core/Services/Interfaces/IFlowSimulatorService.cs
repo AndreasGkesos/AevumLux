@@ -40,4 +40,30 @@ public interface IFlowSimulatorService
         string refreshToken,
         string rawClientSecret,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Executes the Implicit flow. Deprecated by OAuth 2.1 — the access token comes back
+    /// directly in the redirect URL's fragment instead of through a server-to-server exchange,
+    /// which exposes it to browser history, referrer headers and anything else with access to
+    /// the URL. Authorization Code + PKCE replaces this without giving up any capability.
+    /// </summary>
+    IAsyncEnumerable<FlowStep> SimulateImplicitAsync(
+        OidcProvider provider,
+        DiscoveryDocument discovery,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Executes the Resource Owner Password Credentials flow. Deprecated — the client app
+    /// collects the user's raw username and password directly, instead of the user ever
+    /// authenticating with the identity provider. This defeats delegated auth entirely: it's
+    /// incompatible with MFA and federated/SSO login, and trains users to type their password
+    /// into whatever app asks for it.
+    /// </summary>
+    IAsyncEnumerable<FlowStep> SimulateResourceOwnerPasswordAsync(
+        OidcProvider provider,
+        DiscoveryDocument discovery,
+        string username,
+        string password,
+        string rawClientSecret,
+        CancellationToken cancellationToken = default);
 }

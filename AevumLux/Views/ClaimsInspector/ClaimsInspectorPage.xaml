@@ -2,7 +2,8 @@
     x:Class="AevumLux.Views.ClaimsInspector.ClaimsInspectorPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:vm="using:AevumLux.ViewModels">
+    xmlns:vm="using:AevumLux.ViewModels"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls">
 
     <Grid RowSpacing="0">
         <Grid.RowDefinitions>
@@ -150,7 +151,7 @@
                             <ItemsControl ItemsSource="{x:Bind ViewModel.Scopes, Mode=OneWay}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
-                                        <ItemsWrapGrid Orientation="Horizontal" />
+                                        <controls:WrapPanel Orientation="Horizontal" />
                                     </ItemsPanelTemplate>
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>

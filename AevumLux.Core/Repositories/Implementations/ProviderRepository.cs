@@ -54,4 +54,17 @@ public sealed class ProviderRepository : IProviderRepository
             var collection = _context.GetCollection<OidcProvider>(CollectionName);
             collection.Delete(id);
         });
+
+    /// <inheritdoc/>
+    public Task SeedIfMissingAsync(IReadOnlyList<OidcProvider> providers) =>
+        Task.Run(() =>
+        {
+            Guard.AgainstNull(providers, nameof(providers));
+            var collection = _context.GetCollection<OidcProvider>(CollectionName);
+            foreach (var provider in providers)
+            {
+                if (collection.FindById(provider.Id) is null)
+                    collection.Insert(provider);
+            }
+        });
 }

@@ -19,4 +19,11 @@ public interface IProviderRepository
 
     /// <summary>Deletes the provider with the given ID. No-op if not found.</summary>
     Task DeleteAsync(string id);
+
+    /// <summary>
+    /// Inserts each of the given providers if no provider with the same Id already exists.
+    /// Used to seed the standard set of scenario providers reproducibly — existing manual
+    /// edits to a previously-seeded provider are left untouched.
+    /// </summary>
+    Task SeedIfMissingAsync(IReadOnlyList<OidcProvider> providers);
 }

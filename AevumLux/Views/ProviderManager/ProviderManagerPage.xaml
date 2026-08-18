@@ -141,7 +141,7 @@
                     <TextBox
                         Header="Issuer URL"
                         Text="{x:Bind ViewModel.EditorIssuerUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        PlaceholderText="https://localhost:7087" />
+                        PlaceholderText="http://localhost:7087" />
                     <TextBlock
                         Text="Discovery Explorer derives .well-known/openid-configuration from this automatically — no need to store it separately."
                         Style="{StaticResource CaptionTextBlockStyle}"
@@ -151,7 +151,7 @@
                     <TextBox
                         Header="JWKS URI (optional)"
                         Text="{x:Bind ViewModel.EditorJwksUri, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        PlaceholderText="https://localhost:7087/.well-known/jwks" />
+                        PlaceholderText="http://localhost:7087/.well-known/jwks" />
 
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <Button

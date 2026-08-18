@@ -21,13 +21,13 @@ Navigation is organised into tiers, roughly by how central each page is to real 
 | Provider Manager | Save named providers (name, issuer URL, JWKS URI) for quick reuse | Built (thin — no client secrets/flow config yet, not yet wired into other pages) |
 | Flow Simulator | Step-by-step simulation of OAuth 2.0 / OIDC flows (Authorization Code + PKCE, Client Credentials, Device Code, Refresh Token, Implicit, ROPC) with full, live HTTP request/response visibility, shown as a two-column client/IdP timeline | Built and verified against the bundled AevumLux.TestIdentityServer; not tested against real-world providers |
 | Flow Explanations | Static reference — one page per flow, what it is, real-world usage, request/response contract | Built |
-| Settings | Toggle for showing/hiding Flow Explanations and per-step teaching text in Flow Simulator | Minimal |
+| Settings | Toggle for showing/hiding Flow Explanations and per-step teaching text in Flow Simulator; when on, also shows the Test Identity Provider's status, Start/Stop controls, local URL and live log | Minimal |
 
 ---
 
 ## Known limitations
 
-- **No standalone/self-contained build for the main app.** `AevumLux.TestIdentityServer` can be published and run without Visual Studio (see its `SETUP.md`), but the main WinUI 3 app currently needs to be built and run from Visual Studio — there's no packaged installer or self-contained `.exe` distribution yet.
+- **No installer yet for the main app.** `AevumLux.TestIdentityServer` is now auto-published as a self-contained executable by the main app itself (see "Trying Flow Simulator" above), but the main WinUI 3 app still needs to be built and run from Visual Studio — there's no packaged installer or standalone distribution of AevumLux itself yet.
 - **A device_code verification edge case in the test server can throw instead of failing cleanly.** Submitting an invalid/expired `user_code` to `AevumLux.TestIdentityServer`'s `/connect/verify` endpoint can hit an `ArgumentNullException` inside OpenIddict's own device-flow internals rather than returning a normal failed result. It's caught and handled as a clean failure, but the underlying cause hasn't been tracked down — see the `TODO` comment in `Program.cs`.
 - **No "decode this token" shortcut between pages.** Flow Simulator can't jump a token it just received straight into JWT Decoder or Claims Inspector — every page in the app is currently parameterless and resolved fresh, so there's no cross-page navigation-with-data mechanism yet. Copy/paste works fine in the meantime.
 - **Session History has no UI.** The backend already logs every Decode/Fetch/Validate action in-session, but there's no page to view that history yet.
@@ -86,15 +86,14 @@ Discovery Explorer, JWT Decoder, Token Validator, Claims Inspector, JWKS Explore
 
 ### Trying Flow Simulator
 
-Flow Simulator needs a running OAuth/OIDC server to actually call. This repo includes one for exactly that — `AevumLux.TestIdentityServer`, a small self-hosted OpenIddict-based server with a handful of pre-seeded test scenarios (happy paths and common misconfigurations). Run it alongside the main app:
+Flow Simulator needs a running OAuth/OIDC server to actually call. This repo includes one for exactly that — `AevumLux.TestIdentityServer`, a small self-hosted OpenIddict-based server with a handful of pre-seeded test scenarios (happy paths and common misconfigurations). The main app manages it for you:
 
-```
-# From a second terminal / a second Visual Studio instance:
-cd AevumLux.TestIdentityServer
-dotnet run
-```
+- On first run, AevumLux automatically publishes `AevumLux.TestIdentityServer` as a self-contained executable into a `TestIdp\` folder next to its own `.exe` — no manual `dotnet run`, no second terminal.
+- Go to **Settings** and turn on **Show flow explanations** to reveal the **Test Identity Provider** section — a status indicator, Start/Stop buttons, the local URL it's running on, and a live console log.
+- If you try to run a Flow Simulator scenario against the local test IdP while it's stopped, you'll get an inline prompt to start it instead of a raw connection error.
+- If you change `AevumLux.TestIdentityServer`'s code, run `republish-testidp.bat` in the repo root to overwrite the published copy the app is using — the app only auto-publishes when that folder is empty, so it won't pick up code changes on its own after the first run.
 
-See `AevumLux.TestIdentityServer/SETUP.md` for setup details and `SCENARIOS.md` for what each seeded scenario demonstrates.
+`AevumLux.TestIdentityServer` itself remains fully independent — it can still be built and run on its own from Visual Studio or `dotnet run`, with no dependency on the main app. See `AevumLux.TestIdentityServer/SETUP.md` for setup details and `SCENARIOS.md` for what each seeded scenario demonstrates.
 
 ---
 

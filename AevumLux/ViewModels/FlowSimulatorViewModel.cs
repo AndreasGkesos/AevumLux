@@ -5,6 +5,7 @@ using AevumLux.Core.Repositories.Interfaces;
 using AevumLux.Core.Services.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.UI.Dispatching;
 
 namespace AevumLux.ViewModels;
 
@@ -31,6 +32,8 @@ public sealed partial class FlowSimulatorViewModel : ObservableObject
     private readonly IDiscoveryService _discoveryService;
     private readonly IProviderRepository _providerRepository;
     private readonly IAppSettingsService _appSettings;
+    private readonly ITestIdpProcessService _testIdp;
+    private readonly DispatcherQueue _dispatcherQueue;
 
     /// <summary>
     /// Whether to show the scenario/provider picker and per-step teaching text (explanations,
@@ -120,20 +123,43 @@ public sealed partial class FlowSimulatorViewModel : ObservableObject
     [ObservableProperty]
     private bool _hasAccessToken;
 
+    /// <summary>
+    /// True when the Issuer URL points at the bundled local test IdP and it isn't currently
+    /// running — drives a friendly "start it" prompt instead of letting the run fail with a
+    /// raw connection error. Never true for a real/remote provider's issuer URL.
+    /// </summary>
+    [ObservableProperty]
+    private bool _testIdpNeedsStart;
+
     public FlowSimulatorViewModel(
         IFlowSimulatorService flowSimulatorService,
         IDiscoveryService discoveryService,
         IProviderRepository providerRepository,
-        IAppSettingsService appSettings)
+        IAppSettingsService appSettings,
+        ITestIdpProcessService testIdp)
     {
         _flowSimulatorService = flowSimulatorService;
         _discoveryService = discoveryService;
         _providerRepository = providerRepository;
         _appSettings = appSettings;
+        _testIdp = testIdp;
+        _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
         _showExplanations = appSettings.ShowFlowExplanations;
         _appSettings.ShowFlowExplanationsChanged += (_, show) => ShowExplanations = show;
+        _testIdp.StatusChanged += (_, _) => _dispatcherQueue.TryEnqueue(RefreshTestIdpNeedsStart);
         _ = LoadProvidersAsync();
     }
+
+    private bool TargetsLocalTestIdp() =>
+        IssuerUrl.Contains(_testIdp.LocalUrl, StringComparison.OrdinalIgnoreCase);
+
+    private void RefreshTestIdpNeedsStart() =>
+        TestIdpNeedsStart = TargetsLocalTestIdp() && _testIdp.Status is not TestIdpStatus.Running;
+
+    partial void OnIssuerUrlChanged(string value) => RefreshTestIdpNeedsStart();
+
+    [RelayCommand]
+    private Task StartTestIdp() => _testIdp.StartAsync();
 
     private async Task LoadProvidersAsync()
     {

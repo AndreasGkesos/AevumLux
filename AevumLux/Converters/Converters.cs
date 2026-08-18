@@ -1,4 +1,5 @@
 using AevumLux.Core.Models;
+using AevumLux.Core.Services.Interfaces;
 using AevumLux.ViewModels;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
@@ -151,6 +152,53 @@ public sealed class ProviderToNameConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language) =>
         value is OidcProvider provider ? provider.Name : "(Type your own — no scenario provider)";
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+        throw new NotSupportedException();
+}
+
+/// <summary>Converts a <see cref="TestIdpStatus"/> to a colored dot brush: grey (not found), amber (transitioning), green (running), red (failed).</summary>
+public sealed class TestIdpStatusToBrushConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language) =>
+        value switch
+        {
+            TestIdpStatus.Running => new SolidColorBrush(Colors.LimeGreen),
+            TestIdpStatus.Starting or TestIdpStatus.Stopping or TestIdpStatus.Publishing => new SolidColorBrush(Colors.Orange),
+            TestIdpStatus.Failed or TestIdpStatus.PublishFailed => new SolidColorBrush(Colors.Red),
+            _ => new SolidColorBrush(Colors.Gray),
+        };
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+        throw new NotSupportedException();
+}
+
+/// <summary>Converts a <see cref="TestIdpStatus"/> to a short human-readable label.</summary>
+public sealed class TestIdpStatusToTextConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language) =>
+        value switch
+        {
+            TestIdpStatus.NotFound => "Not found — not yet published",
+            TestIdpStatus.Publishing => "Publishing (first run)…",
+            TestIdpStatus.PublishFailed => "Publish failed",
+            TestIdpStatus.Stopped => "Stopped",
+            TestIdpStatus.Starting => "Starting…",
+            TestIdpStatus.Running => "Running",
+            TestIdpStatus.Stopping => "Stopping…",
+            TestIdpStatus.Failed => "Stopped unexpectedly",
+            _ => "Unknown",
+        };
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+        throw new NotSupportedException();
+}
+
+/// <summary>Returns Visible when the bound <see cref="TestIdpStatus"/> is Running, Collapsed otherwise.</summary>
+public sealed class TestIdpRunningToVisibilityConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language) =>
+        value is TestIdpStatus.Running ? Visibility.Visible : Visibility.Collapsed;
 
     public object ConvertBack(object value, Type targetType, object parameter, string language) =>
         throw new NotSupportedException();

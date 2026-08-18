@@ -24,6 +24,9 @@
             <converters:FlowStepStatusToFailedVisibilityConverter x:Key="FlowStepStatusToFailedVisibilityConverter" />
             <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
             <converters:ProviderToNameConverter x:Key="ProviderToNameConverter" />
+            <converters:TestIdpStatusToBrushConverter x:Key="TestIdpStatusToBrushConverter" />
+            <converters:TestIdpStatusToTextConverter x:Key="TestIdpStatusToTextConverter" />
+            <converters:TestIdpRunningToVisibilityConverter x:Key="TestIdpRunningToVisibilityConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

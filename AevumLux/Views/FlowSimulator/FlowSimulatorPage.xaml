@@ -198,6 +198,17 @@
                     Width="32" Height="32"
                     HorizontalAlignment="Center" />
 
+                <!-- Test IdP not running -->
+                <InfoBar
+                    IsOpen="{x:Bind ViewModel.TestIdpNeedsStart, Mode=OneWay}"
+                    Severity="Warning"
+                    Title="Test Identity Provider isn't running"
+                    Message="This scenario targets the bundled local test IdP, which is currently stopped.">
+                    <InfoBar.ActionButton>
+                        <Button Content="Start" Command="{x:Bind ViewModel.StartTestIdpCommand}" />
+                    </InfoBar.ActionButton>
+                </InfoBar>
+
                 <!-- Error -->
                 <InfoBar
                     IsOpen="{x:Bind ViewModel.ErrorMessage, Mode=OneWay, Converter={StaticResource StringToBoolConverter}}"

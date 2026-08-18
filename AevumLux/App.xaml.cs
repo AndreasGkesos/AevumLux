@@ -33,6 +33,9 @@ public partial class App : Application
         var providerRepository = Services.GetRequiredService<IProviderRepository>();
         _ = providerRepository.SeedIfMissingAsync(ScenarioProviderSeeds.GetAll());
 
+        var testIdpProcessService = Services.GetRequiredService<ITestIdpProcessService>();
+        _ = testIdpProcessService.EnsurePublishedAsync();
+
         var window = new ShellWindow();
         window.Closed += (_, _) => (Services as IDisposable)?.Dispose();
         window.Activate();
@@ -77,6 +80,7 @@ public partial class App : Application
     private static void RegisterServices(IServiceCollection services)
     {
         services.AddSingleton<ISessionHistoryService, SessionHistoryService>();
+        services.AddSingleton<ITestIdpProcessService, TestIdpProcessService>();
         services.AddTransient<IJwtService, JwtService>();
         services.AddSingleton<IAuthorizationRedirectHandler>(_ =>
             new WebView2AuthorizationRedirectHandler(Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread()));

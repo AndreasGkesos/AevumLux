@@ -69,13 +69,16 @@
                         <TextBlock Text="What happens" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,6,0,0" />
                         <StackPanel Spacing="4">
                             <TextBlock Style="{StaticResource BodyTextBlockStyle}" Opacity="0.8" TextWrapping="Wrap">
-                                1. The app opens the authorization endpoint in a browser, sending a PKCE code_challenge along with the request. The user authenticates and consents there — the app itself never sees their credentials.
+                                1. The app opens the authorization endpoint in a browser, sending a PKCE code_challenge along with the request. The identity provider renders its own real login page in response — the app itself never sees the credentials, only that page.
                             </TextBlock>
                             <TextBlock Style="{StaticResource BodyTextBlockStyle}" Opacity="0.8" TextWrapping="Wrap">
-                                2. The browser is redirected back to the app's redirect_uri with a short-lived, single-use authorization code.
+                                2. The user submits their credentials on that page (a normal form POST to the identity provider, not to the app).
                             </TextBlock>
                             <TextBlock Style="{StaticResource BodyTextBlockStyle}" Opacity="0.8" TextWrapping="Wrap">
-                                3. The app sends that code, plus the original code_verifier, directly to the token endpoint (server-to-server, not through the browser). The server recomputes the code_challenge from the verifier and checks it matches — proving this exchange came from the same app that started the flow — then returns tokens.
+                                3. If valid, the browser is redirected back to the app's redirect_uri with a short-lived, single-use authorization code.
+                            </TextBlock>
+                            <TextBlock Style="{StaticResource BodyTextBlockStyle}" Opacity="0.8" TextWrapping="Wrap">
+                                4. The app sends that code, plus the original code_verifier, directly to the token endpoint (server-to-server, not through the browser). The server recomputes the code_challenge from the verifier and checks it matches — proving this exchange came from the same app that started the flow — then returns tokens.
                             </TextBlock>
                         </StackPanel>
 
@@ -110,7 +113,7 @@
 
                         <TextBlock Text="What happens" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,6,0,0" />
                         <TextBlock Style="{StaticResource BodyTextBlockStyle}" Opacity="0.8" TextWrapping="Wrap">
-                            One HTTP request, same shape as Client Credentials — the app POSTs its stored refresh_token to the token endpoint (with a client_secret too, if it's a confidential client) and gets back a fresh access token.
+                            One HTTP request, same shape as Client Credentials — the app POSTs its stored refresh_token to the token endpoint (with a client_secret too, if it's a confidential client) and gets back a fresh access token, and usually a new refresh_token too. Reusing an already-rotated refresh_token is expected to fail with invalid_grant — though most servers, including this test IdP, allow a short grace window (a few seconds) after rotation where the old token still works, to tolerate network retries.
                         </TextBlock>
 
                         <TextBlock Text="Contract" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,6,0,0" />
@@ -145,7 +148,7 @@
                                 1. The device POSTs its client_id (and scope) to a device authorization endpoint, with no user interaction yet. The server returns a device_code (used by the device to poll) and a user_code (shown to the person).
                             </TextBlock>
                             <TextBlock Style="{StaticResource BodyTextBlockStyle}" Opacity="0.8" TextWrapping="Wrap">
-                                2. The person visits the verification URL on any device with a browser, signs in, and types in the user_code to link their approval back to the waiting device's pending request.
+                                2. The person visits the verification URL on any device with a browser, signs in on a real login page, and types in the user_code themselves — the code is never pre-filled by the link, so this step still requires manually copying it over — to link their approval back to the waiting device's pending request.
                             </TextBlock>
                             <TextBlock Style="{StaticResource BodyTextBlockStyle}" Opacity="0.8" TextWrapping="Wrap">
                                 3. Meanwhile, the original device polls the token endpoint at a fixed interval with the device_code. The server returns authorization_pending until the person approves, then a normal token response. If the server ever replies slow_down, the polling client must add at least 5 seconds to its interval for every request after that.

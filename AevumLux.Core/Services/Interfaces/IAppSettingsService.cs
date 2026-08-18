@@ -4,12 +4,14 @@ namespace AevumLux.Core.Services.Interfaces;
 public interface IAppSettingsService
 {
     /// <summary>
-    /// Gets or sets whether the Flow Simulator page is shown in navigation.
-    /// Off by default — this app is primarily a debugging tool; Flow Simulator
-    /// is a study-mode feature for learning OAuth/OIDC flows step by step.
+    /// Gets or sets whether the Flow Explanations reference page is shown in navigation, and
+    /// whether Flow Simulator shows its scenario/provider picker and per-step teaching text
+    /// (explanations, deprecation warnings). Off by default — Flow Simulator itself is always
+    /// visible as a debugging tool; this setting only controls the "teaching" overhead layered
+    /// on top of it for people learning OAuth/OIDC rather than actively debugging.
     /// </summary>
-    bool ShowFlowSimulator { get; set; }
+    bool ShowFlowExplanations { get; set; }
 
-    /// <summary>Raised whenever <see cref="ShowFlowSimulator"/> changes, so the shell can update live.</summary>
-    event EventHandler<bool>? ShowFlowSimulatorChanged;
+    /// <summary>Raised whenever <see cref="ShowFlowExplanations"/> changes, so the shell can update live.</summary>
+    event EventHandler<bool>? ShowFlowExplanationsChanged;
 }

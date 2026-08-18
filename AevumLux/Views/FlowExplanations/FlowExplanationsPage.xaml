@@ -1,0 +1,237 @@
+<Page
+    x:Class="AevumLux.Views.FlowExplanations.FlowExplanationsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid RowSpacing="0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Page header -->
+        <StackPanel Grid.Row="0" Padding="24,24,24,0" Spacing="2">
+            <TextBlock Text="Flow Explanations" Style="{StaticResource TitleTextBlockStyle}" />
+            <TextBlock
+                Text="A reference for the six OAuth 2.0 / OIDC flows Flow Simulator can run — what each is, where it's used in the real world, and the exact request/response contract. Nothing on this page runs anything; go to Flow Simulator to actually try one."
+                Style="{StaticResource BodyTextBlockStyle}"
+                Opacity="0.6"
+                TextWrapping="Wrap" />
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" Padding="24,16,24,24">
+            <StackPanel Spacing="20" MaxWidth="820" HorizontalAlignment="Left">
+
+                <!-- ================= Client Credentials ================= -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="20">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Client Credentials" Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <TextBlock Style="{StaticResource BodyTextBlockStyle}" TextWrapping="Wrap">
+                            Machine-to-machine authentication — no user, no browser. A backend service or job authenticates as <Run FontStyle="Italic">itself</Run>, using its own client ID and secret, to call an API on its own behalf rather than a person's.
+                        </TextBlock>
+
+                        <TextBlock Text="Used for" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,6,0,0" />
+                        <TextBlock Style="{StaticResource BodyTextBlockStyle}" Opacity="0.8" TextWrapping="Wrap">
+                            A nightly batch job, a server-to-server integration, a CI pipeline calling a protected API — anywhere the caller is a system, not a human sitting at a browser.
+                        </TextBlock>
+
+                        <TextBlock Text="What happens" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,6,0,0" />
+                        <TextBlock Style="{StaticResource BodyTextBlockStyle}" Opacity="0.8" TextWrapping="Wrap">
+                            One HTTP request. The app POSTs directly to the token endpoint with its client_id and client_secret; the server verifies them and, if valid, returns an access token immediately. There is no redirect, no browser, no second step.
+                        </TextBlock>
+
+                        <TextBlock Text="Contract" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,6,0,0" />
+                        <Border Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="6" Padding="12">
+                            <StackPanel Spacing="4">
+                                <TextBlock Style="{StaticResource CaptionTextBlockStyle}" FontFamily="Cascadia Code, Consolas, Courier New" TextWrapping="Wrap">
+                                    POST /token
+                                    grant_type=client_credentials&amp;client_id=...&amp;client_secret=...&amp;scope=...
+                                </TextBlock>
+                                <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.6" Text="Returns: access_token, token_type, expires_in, scope" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- ================= Authorization Code + PKCE ================= -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="20">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Authorization Code + PKCE" Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <TextBlock Style="{StaticResource BodyTextBlockStyle}" TextWrapping="Wrap">
+                            The flow used when a real person is present: a user signs in through a browser, consents, and the app receives a short-lived authorization code it exchanges for tokens. PKCE (Proof Key for Code Exchange) adds an app-generated secret — the code_verifier — that only the app which started the flow knows, so a stolen authorization code alone can't be redeemed by someone else.
+                        </TextBlock>
+
+                        <TextBlock Text="Used for" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,6,0,0" />
+                        <TextBlock Style="{StaticResource BodyTextBlockStyle}" Opacity="0.8" TextWrapping="Wrap">
+                            Any app with a login screen — web app, desktop app, mobile app. This is the default, recommended flow for user-facing sign-in today.
+                        </TextBlock>
+
+                        <TextBlock Text="What happens" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,6,0,0" />
+                        <StackPanel Spacing="4">
+                            <TextBlock Style="{StaticResource BodyTextBlockStyle}" Opacity="0.8" TextWrapping="Wrap">
+                                1. The app opens the authorization endpoint in a browser, sending a PKCE code_challenge along with the request. The user authenticates and consents there — the app itself never sees their credentials.
+                            </TextBlock>
+                            <TextBlock Style="{StaticResource BodyTextBlockStyle}" Opacity="0.8" TextWrapping="Wrap">
+                                2. The browser is redirected back to the app's redirect_uri with a short-lived, single-use authorization code.
+                            </TextBlock>
+                            <TextBlock Style="{StaticResource BodyTextBlockStyle}" Opacity="0.8" TextWrapping="Wrap">
+                                3. The app sends that code, plus the original code_verifier, directly to the token endpoint (server-to-server, not through the browser). The server recomputes the code_challenge from the verifier and checks it matches — proving this exchange came from the same app that started the flow — then returns tokens.
+                            </TextBlock>
+                        </StackPanel>
+
+                        <TextBlock Text="Contract" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,6,0,0" />
+                        <Border Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="6" Padding="12">
+                            <StackPanel Spacing="4">
+                                <TextBlock Style="{StaticResource CaptionTextBlockStyle}" FontFamily="Cascadia Code, Consolas, Courier New" TextWrapping="Wrap">
+                                    GET /authorize?response_type=code&amp;client_id=...&amp;redirect_uri=...&amp;scope=...&amp;state=...&amp;code_challenge=...&amp;code_challenge_method=S256
+                                    → redirect to redirect_uri?code=...&amp;state=...
+
+                                    POST /token
+                                    grant_type=authorization_code&amp;code=...&amp;redirect_uri=...&amp;client_id=...&amp;code_verifier=...
+                                </TextBlock>
+                                <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.6" Text="Returns: access_token, token_type, expires_in, refresh_token (if offline_access requested)" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- ================= Refresh Token ================= -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="20">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Refresh Token" Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <TextBlock Style="{StaticResource BodyTextBlockStyle}" TextWrapping="Wrap">
+                            Exchanging a long-lived refresh token for a new access token — and usually a new refresh token — without involving the user or the browser again. This is how a session outlives the access token's short expiry.
+                        </TextBlock>
+
+                        <TextBlock Text="Used for" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,6,0,0" />
+                        <TextBlock Style="{StaticResource BodyTextBlockStyle}" Opacity="0.8" TextWrapping="Wrap">
+                            Keeping a user signed in for days or weeks after an Authorization Code flow, without asking them to log in again every time a short-lived access token expires.
+                        </TextBlock>
+
+                        <TextBlock Text="What happens" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,6,0,0" />
+                        <TextBlock Style="{StaticResource BodyTextBlockStyle}" Opacity="0.8" TextWrapping="Wrap">
+                            One HTTP request, same shape as Client Credentials — the app POSTs its stored refresh_token to the token endpoint (with a client_secret too, if it's a confidential client) and gets back a fresh access token.
+                        </TextBlock>
+
+                        <TextBlock Text="Contract" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,6,0,0" />
+                        <Border Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="6" Padding="12">
+                            <StackPanel Spacing="4">
+                                <TextBlock Style="{StaticResource CaptionTextBlockStyle}" FontFamily="Cascadia Code, Consolas, Courier New" TextWrapping="Wrap">
+                                    POST /token
+                                    grant_type=refresh_token&amp;refresh_token=...&amp;client_id=...[&amp;client_secret=...]
+                                </TextBlock>
+                                <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.6" Text="Returns: access_token, token_type, expires_in, (often) a new refresh_token" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- ================= Device Code ================= -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="20">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Device Code" Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <TextBlock Style="{StaticResource BodyTextBlockStyle}" TextWrapping="Wrap">
+                            Signing in on a device that has no easy way to type a password — a CLI, a smart TV, a set-top box. The device asks the server for a device_code and a short user_code, shows the user_code and a URL, and polls the token endpoint in the background while the person enters that code on a <Run FontStyle="Italic">different</Run> device — their phone, a nearby computer.
+                        </TextBlock>
+
+                        <TextBlock Text="Used for" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,6,0,0" />
+                        <TextBlock Style="{StaticResource BodyTextBlockStyle}" Opacity="0.8" TextWrapping="Wrap">
+                            <Run FontFamily="Cascadia Code, Consolas, Courier New">gh auth login</Run>, streaming-service TV apps, smart home device setup — any input-constrained device.
+                        </TextBlock>
+
+                        <TextBlock Text="What happens" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,6,0,0" />
+                        <StackPanel Spacing="4">
+                            <TextBlock Style="{StaticResource BodyTextBlockStyle}" Opacity="0.8" TextWrapping="Wrap">
+                                1. The device POSTs its client_id (and scope) to a device authorization endpoint, with no user interaction yet. The server returns a device_code (used by the device to poll) and a user_code (shown to the person).
+                            </TextBlock>
+                            <TextBlock Style="{StaticResource BodyTextBlockStyle}" Opacity="0.8" TextWrapping="Wrap">
+                                2. The person visits the verification URL on any device with a browser, signs in, and types in the user_code to link their approval back to the waiting device's pending request.
+                            </TextBlock>
+                            <TextBlock Style="{StaticResource BodyTextBlockStyle}" Opacity="0.8" TextWrapping="Wrap">
+                                3. Meanwhile, the original device polls the token endpoint at a fixed interval with the device_code. The server returns authorization_pending until the person approves, then a normal token response. If the server ever replies slow_down, the polling client must add at least 5 seconds to its interval for every request after that.
+                            </TextBlock>
+                        </StackPanel>
+
+                        <TextBlock Text="Contract" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,6,0,0" />
+                        <Border Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="6" Padding="12">
+                            <StackPanel Spacing="4">
+                                <TextBlock Style="{StaticResource CaptionTextBlockStyle}" FontFamily="Cascadia Code, Consolas, Courier New" TextWrapping="Wrap">
+                                    POST /device
+                                    client_id=...&amp;scope=...
+                                    → device_code, user_code, verification_uri, expires_in
+
+                                    (poll) POST /token
+                                    grant_type=urn:ietf:params:oauth:grant-type:device_code&amp;device_code=...&amp;client_id=...
+                                </TextBlock>
+                                <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.6" Text="Poll returns: authorization_pending or slow_down until approved, then access_token, token_type, expires_in" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- ================= Implicit — Deprecated ================= -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource SystemFillColorCautionBrush}" BorderThickness="1" CornerRadius="8" Padding="20">
+                    <StackPanel Spacing="10">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="Implicit" Style="{StaticResource SubtitleTextBlockStyle}" />
+                            <Border Background="{ThemeResource SystemFillColorCautionBackgroundBrush}" CornerRadius="4" Padding="8,3" VerticalAlignment="Center">
+                                <TextBlock Text="⚠ Deprecated" Style="{StaticResource CaptionTextBlockStyle}" FontWeight="SemiBold" Foreground="{ThemeResource SystemFillColorCautionBrush}" />
+                            </Border>
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource BodyTextBlockStyle}" TextWrapping="Wrap">
+                            The authorize redirect returns the access token directly in the URL fragment instead of a code to exchange — no code-exchange step, no client authentication at all. <Run FontWeight="SemiBold">Removed in OAuth 2.1.</Run>
+                        </TextBlock>
+
+                        <TextBlock Text="Why it's discouraged" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,6,0,0" />
+                        <TextBlock Style="{StaticResource BodyTextBlockStyle}" Opacity="0.8" TextWrapping="Wrap">
+                            The access token travels as part of the redirect URL, after the '#'. That means it can end up in browser history, in Referer headers if the page then loads external resources, and in any logging that captures full URLs — none of which ever see a token in Authorization Code + PKCE, because that flow's token only ever travels in a POST body straight from the app to the token endpoint. There's also no client authentication step here at all. Real IdPs now default this off; the fact that it needs deliberate opt-in per client is itself a sign of where the industry has moved. Authorization Code + PKCE replaces this without giving up anything Implicit could do.
+                        </TextBlock>
+
+                        <TextBlock Text="Contract" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,6,0,0" />
+                        <Border Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="6" Padding="12">
+                            <StackPanel Spacing="4">
+                                <TextBlock Style="{StaticResource CaptionTextBlockStyle}" FontFamily="Cascadia Code, Consolas, Courier New" TextWrapping="Wrap">
+                                    GET /authorize?response_type=token&amp;client_id=...&amp;redirect_uri=...&amp;scope=...&amp;state=...
+                                    → redirect to redirect_uri#access_token=...&amp;token_type=...&amp;state=...
+                                </TextBlock>
+                                <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.6" Text="No token-exchange step — the access token is already in the redirect." TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- ================= ROPC — Deprecated ================= -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource SystemFillColorCautionBrush}" BorderThickness="1" CornerRadius="8" Padding="20">
+                    <StackPanel Spacing="10">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="Resource Owner Password Credentials (ROPC)" Style="{StaticResource SubtitleTextBlockStyle}" />
+                            <Border Background="{ThemeResource SystemFillColorCautionBackgroundBrush}" CornerRadius="4" Padding="8,3" VerticalAlignment="Center">
+                                <TextBlock Text="⚠ Deprecated" Style="{StaticResource CaptionTextBlockStyle}" FontWeight="SemiBold" Foreground="{ThemeResource SystemFillColorCautionBrush}" />
+                            </Border>
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource BodyTextBlockStyle}" TextWrapping="Wrap">
+                            The client app collects the user's raw username and password itself — in its own UI, not the identity provider's — and posts them directly to the token endpoint. The user never interacts with the identity provider at all. <Run FontWeight="SemiBold">Dropped in OAuth 2.1.</Run>
+                        </TextBlock>
+
+                        <TextBlock Text="Why it's discouraged" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,6,0,0" />
+                        <TextBlock Style="{StaticResource BodyTextBlockStyle}" Opacity="0.8" TextWrapping="Wrap">
+                            This app — not the identity provider — is the thing that sees the user's actual password, which defeats the entire point of delegated authorization: the IdP exists so client apps never need to touch credentials. Concretely, this breaks multi-factor authentication and federated/SSO login (there's no place for a second factor or a redirect to a corporate IdP in a single password field), and it trains users to type their password into any app that asks — exactly the muscle memory phishing relies on. Authorization Code + PKCE is the replacement: the user authenticates on the identity provider's own page, which the client app never sees the contents of.
+                        </TextBlock>
+
+                        <TextBlock Text="Contract" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,6,0,0" />
+                        <Border Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="6" Padding="12">
+                            <StackPanel Spacing="4">
+                                <TextBlock Style="{StaticResource CaptionTextBlockStyle}" FontFamily="Cascadia Code, Consolas, Courier New" TextWrapping="Wrap">
+                                    POST /token
+                                    grant_type=password&amp;username=...&amp;password=...&amp;client_id=...[&amp;client_secret=...]&amp;scope=...
+                                </TextBlock>
+                                <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.6" Text="Returns: access_token, token_type, expires_in — the request body contains the raw password." TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

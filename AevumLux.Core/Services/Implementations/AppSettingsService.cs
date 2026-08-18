@@ -24,26 +24,26 @@ public sealed class AppSettingsService : IAppSettingsService
     }
 
     /// <inheritdoc/>
-    public bool ShowFlowSimulator
+    public bool ShowFlowExplanations
     {
-        get { lock (_lock) return _data.ShowFlowSimulator; }
+        get { lock (_lock) return _data.ShowFlowExplanations; }
         set
         {
             lock (_lock)
             {
-                if (_data.ShowFlowSimulator == value)
+                if (_data.ShowFlowExplanations == value)
                     return;
 
-                _data.ShowFlowSimulator = value;
+                _data.ShowFlowExplanations = value;
                 Save();
             }
 
-            ShowFlowSimulatorChanged?.Invoke(this, value);
+            ShowFlowExplanationsChanged?.Invoke(this, value);
         }
     }
 
     /// <inheritdoc/>
-    public event EventHandler<bool>? ShowFlowSimulatorChanged;
+    public event EventHandler<bool>? ShowFlowExplanationsChanged;
 
     private SettingsData Load()
     {
@@ -69,6 +69,6 @@ public sealed class AppSettingsService : IAppSettingsService
 
     private sealed class SettingsData
     {
-        public bool ShowFlowSimulator { get; set; }
+        public bool ShowFlowExplanations { get; set; }
     }
 }

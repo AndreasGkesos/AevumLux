@@ -9,13 +9,13 @@ public sealed partial class SettingsViewModel : ObservableObject
     private readonly IAppSettingsService _appSettings;
 
     [ObservableProperty]
-    private bool _showFlowSimulator;
+    private bool _showFlowExplanations;
 
     public SettingsViewModel(IAppSettingsService appSettings)
     {
         _appSettings = appSettings;
-        _showFlowSimulator = appSettings.ShowFlowSimulator;
+        _showFlowExplanations = appSettings.ShowFlowExplanations;
     }
 
-    partial void OnShowFlowSimulatorChanged(bool value) => _appSettings.ShowFlowSimulator = value;
+    partial void OnShowFlowExplanationsChanged(bool value) => _appSettings.ShowFlowExplanations = value;
 }

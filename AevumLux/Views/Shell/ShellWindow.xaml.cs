@@ -3,6 +3,7 @@ using AevumLux.Views.Discovery;
 using AevumLux.Views.JwtDecoder;
 using AevumLux.Views.TokenValidator;
 using AevumLux.Views.FlowSimulator;
+using AevumLux.Views.FlowExplanations;
 using AevumLux.Views.ClaimsInspector;
 using AevumLux.Views.JwksExplorer;
 using AevumLux.Views.ScopeAnalyser;
@@ -30,6 +31,7 @@ public sealed partial class ShellWindow : Window
         ["JwtDecoder"] = typeof(JwtDecoderPage),
         ["TokenValidator"] = typeof(TokenValidatorPage),
         ["FlowSimulator"] = typeof(FlowSimulatorPage),
+        ["FlowExplanations"] = typeof(FlowExplanationsPage),
         ["ClaimsInspector"] = typeof(ClaimsInspectorPage),
         ["JwksExplorer"] = typeof(JwksExplorerPage),
         ["ScopeAnalyser"] = typeof(ScopeAnalyserPage),
@@ -40,44 +42,44 @@ public sealed partial class ShellWindow : Window
     };
 
     private readonly IAppSettingsService _appSettings = App.Services.GetRequiredService<IAppSettingsService>();
-    private NavigationViewItem? _flowSimulatorItem;
+    private NavigationViewItem? _flowExplanationsItem;
 
     public ShellWindow()
     {
         InitializeComponent();
         TrySetMicaBackdrop();
         ExtendsContentIntoTitleBar = true;
-        _appSettings.ShowFlowSimulatorChanged += (_, show) => RefreshFlowSimulatorVisibility(show);
+        _appSettings.ShowFlowExplanationsChanged += (_, show) => RefreshFlowExplanationsVisibility(show);
     }
 
     private void NavView_Loaded(object sender, RoutedEventArgs e)
     {
-        RefreshFlowSimulatorVisibility(_appSettings.ShowFlowSimulator);
+        RefreshFlowExplanationsVisibility(_appSettings.ShowFlowExplanations);
         NavView.SelectedItem = NavView.MenuItems.OfType<NavigationViewItem>().First();
         NavigateTo("Discovery");
     }
 
-    /// <summary>Adds or removes the Flow Simulator nav item to match the current setting.</summary>
-    private void RefreshFlowSimulatorVisibility(bool show)
+    /// <summary>Adds or removes the Flow Explanations nav item to match the current setting.</summary>
+    private void RefreshFlowExplanationsVisibility(bool show)
     {
         if (show)
         {
-            if (_flowSimulatorItem is null)
+            if (_flowExplanationsItem is null)
             {
-                _flowSimulatorItem = new NavigationViewItem
+                _flowExplanationsItem = new NavigationViewItem
                 {
-                    Tag = "FlowSimulator",
-                    Content = "Flow Simulator",
-                    Icon = new FontIcon { Glyph = "\uE768" }
+                    Tag = "FlowExplanations",
+                    Content = "Flow Explanations",
+                    Icon = new FontIcon { Glyph = "\uE82D" }
                 };
-                ToolTipService.SetToolTip(_flowSimulatorItem, "Simulate OIDC and OAuth 2.0 flows step by step");
-                NavView.MenuItems.Add(_flowSimulatorItem);
+                ToolTipService.SetToolTip(_flowExplanationsItem, "Reference: what each OAuth 2.0 / OIDC flow is and how it works");
+                NavView.MenuItems.Add(_flowExplanationsItem);
             }
         }
-        else if (_flowSimulatorItem is not null)
+        else if (_flowExplanationsItem is not null)
         {
-            NavView.MenuItems.Remove(_flowSimulatorItem);
-            _flowSimulatorItem = null;
+            NavView.MenuItems.Remove(_flowExplanationsItem);
+            _flowExplanationsItem = null;
         }
     }
 

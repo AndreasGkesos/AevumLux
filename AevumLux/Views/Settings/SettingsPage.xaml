@@ -25,15 +25,15 @@
                 CornerRadius="8"
                 Padding="16">
                 <StackPanel Spacing="8">
-                    <TextBlock Text="Flow Simulator" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                    <TextBlock Text="Flow Explanations" Style="{StaticResource BodyStrongTextBlockStyle}" />
                     <TextBlock
-                        Text="AevumLux is primarily a debugging tool. Flow Simulator walks through live OAuth 2.0 / OIDC flows step by step against a real provider — useful for studying how the protocols work, less so for day-to-day token debugging. Off by default; turn it on if you want it in the sidebar."
+                        Text="Flow Simulator is always available as a debugging tool — pick a flow, fill in the fields, press Run. This setting adds a Flow Explanations reference page to navigation, and shows Flow Simulator's scenario picker plus step-by-step explanations and deprecation warnings alongside the real request/response data. Turn off for a clean, no-overhead debugging view; turn on if you're learning how these flows work."
                         Style="{StaticResource CaptionTextBlockStyle}"
                         Opacity="0.6"
                         TextWrapping="Wrap" />
                     <ToggleSwitch
-                        Header="Show Flow Simulator in navigation"
-                        IsOn="{x:Bind ViewModel.ShowFlowSimulator, Mode=TwoWay}"
+                        Header="Show flow explanations"
+                        IsOn="{x:Bind ViewModel.ShowFlowExplanations, Mode=TwoWay}"
                         OnContent="On"
                         OffContent="Off" />
                 </StackPanel>

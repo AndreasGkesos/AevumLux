@@ -103,7 +103,16 @@
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
 
-                <!-- Tier 3: Flow Simulator — hidden unless enabled in Settings -->
+                <NavigationViewItem
+                    Tag="FlowSimulator"
+                    Content="Flow Simulator"
+                    ToolTipService.ToolTip="Run real OAuth 2.0 / OIDC flows against any provider">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE768;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <!-- Tier 3: Flow Explanations — hidden unless enabled in Settings -->
             </NavigationView.MenuItems>
 
             <NavigationView.FooterMenuItems>

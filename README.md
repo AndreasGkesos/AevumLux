@@ -1,31 +1,12 @@
 # AevumLux
-### *an age of light*
 
-> **because your auth flows deserve to be seen**
-
-AevumLux is a native Windows desktop developer tool for inspecting, debugging and understanding OpenID Connect and OAuth 2.0 flows. Built for developers who are tired of guessing what their tokens actually contain, why their flows are failing, and what their provider's discovery document is actually telling them.
-
----
-
-## What it is
-
-A portfolio-grade WinUI 3 desktop application that gives you:
-
-- A structured, readable view of any provider's OIDC discovery document
-- JWT decoding with header, payload and signature broken down into readable fields
-- Cryptographic token validation against a provider's JWKS, with a pass/fail reason per check
-- Claims inspection grouped by identity, access and metadata, with security observations flagged automatically
-- JWKS Explorer that makes cryptographic keys tangible, with kid matching against a token
-- Scope analysis — standard vs custom scopes, plain English descriptions, cross-checked against what the token actually contains
-- Token diff — paste two tokens and see exactly what changed
-- Provider Manager for saving frequently-used issuer/JWKS URLs
-- (Planned) Step-by-step, live flow simulation for Authorization Code + PKCE, Client Credentials, Device Code, Refresh Token and Implicit (deprecated — clearly labelled) — a study-mode feature, off by default
+A Windows desktop app I built to actually understand OpenID Connect and OAuth 2.0 — not just read about them. It's a learning/portfolio project, not a finished product: the parts that inspect tokens and discovery documents (JWT Decoder, Token Validator, Claims Inspector, JWKS Explorer, Scope Analyser, Token Diff) work against any standards-compliant provider you point them at, but the flow simulation part was built and tested against a self-hosted test identity server included in this repo, not against real-world providers like Auth0, Okta, or Azure AD. If you try Flow Simulator against a production IdP, expect friction — different providers implement these flows with real variations, and this project hasn't been exercised against them.
 
 ---
 
 ## Features
 
-Navigation is organised into tiers, roughly by how central each page is to real debugging work: core debugging tools first, informational/comparison tools second, and Flow Simulator — a study-mode feature — hidden behind a Settings toggle, off by default.
+Navigation is organised into tiers, roughly by how central each page is to real debugging work: core debugging tools first, informational/comparison tools second. Flow Simulator is always available; a Settings toggle controls whether it shows scenario picker/teaching text (and whether Flow Explanations appears in navigation at all) or stays a clean, minimal debugging tool.
 
 | Feature | Description | Status |
 |---|---|---|
@@ -38,12 +19,19 @@ Navigation is organised into tiers, roughly by how central each page is to real 
 | Scope Analyser | Standard vs custom scope classification, plain English descriptions, and cross-check against claims actually present in the token | Built |
 | Token Diff | Side-by-side diff with green/red/amber highlights for added, removed and changed claims | Built |
 | Provider Manager | Save named providers (name, issuer URL, JWKS URI) for quick reuse | Built (thin — no client secrets/flow config yet, not yet wired into other pages) |
-| Flow Simulator | Step-by-step simulation of OAuth 2.0 / OIDC flows (Authorization Code + PKCE, Client Credentials, Device Code, Refresh Token, Implicit) with full, live HTTP request/response visibility against a real provider | Not built — hidden by default behind a Settings toggle; waiting on a self-hosted test IdentityServer |
-| Settings | Currently just the Flow Simulator visibility toggle | Minimal |
+| Flow Simulator | Step-by-step simulation of OAuth 2.0 / OIDC flows (Authorization Code + PKCE, Client Credentials, Device Code, Refresh Token, Implicit, ROPC) with full, live HTTP request/response visibility, shown as a two-column client/IdP timeline | Built and verified against the bundled AevumLux.TestIdentityServer; not tested against real-world providers |
+| Flow Explanations | Static reference — one page per flow, what it is, real-world usage, request/response contract | Built |
+| Settings | Toggle for showing/hiding Flow Explanations and per-step teaching text in Flow Simulator | Minimal |
 
-Two items from earlier planning are worth calling out explicitly rather than leaving unmentioned:
-- **Token Expiry Monitor** (live countdown timers) was built and then removed — JWT Decoder's and Token Validator's existing expiry handling already cover real debugging needs.
-- **Export** (copy tokens as JSON, export discovery docs, flow reports as Markdown/HTML) has not been discussed or scheduled yet.
+---
+
+## Known limitations
+
+- **No standalone/self-contained build for the main app.** `AevumLux.TestIdentityServer` can be published and run without Visual Studio (see its `SETUP.md`), but the main WinUI 3 app currently needs to be built and run from Visual Studio — there's no packaged installer or self-contained `.exe` distribution yet.
+- **A device_code verification edge case in the test server can throw instead of failing cleanly.** Submitting an invalid/expired `user_code` to `AevumLux.TestIdentityServer`'s `/connect/verify` endpoint can hit an `ArgumentNullException` inside OpenIddict's own device-flow internals rather than returning a normal failed result. It's caught and handled as a clean failure, but the underlying cause hasn't been tracked down — see the `TODO` comment in `Program.cs`.
+- **No "decode this token" shortcut between pages.** Flow Simulator can't jump a token it just received straight into JWT Decoder or Claims Inspector — every page in the app is currently parameterless and resolved fresh, so there's no cross-page navigation-with-data mechanism yet. Copy/paste works fine in the meantime.
+- **Session History has no UI.** The backend already logs every Decode/Fetch/Validate action in-session, but there's no page to view that history yet.
+- **Provider Manager isn't wired into the other pages.** Saved providers can be created and managed, but Discovery Explorer, Token Validator and JWKS Explorer don't yet offer a "pick a saved provider" dropdown — only Flow Simulator reads from the provider list right now.
 
 ---
 
@@ -58,7 +46,6 @@ Two items from earlier planning are worth calling out explicitly rather than lea
 | JWT | System.IdentityModel.Tokens.Jwt |
 | HTTP | Microsoft.Extensions.Http |
 | Local Storage | LiteDB |
-| Secret Encryption | Windows Data Protection API (DPAPI) |
 | Browser Redirect | WebView2 |
 | Design | Fluent UI, Mica background, Windows 11 design language |
 
@@ -66,36 +53,13 @@ Two items from earlier planning are worth calling out explicitly rather than lea
 
 ## Architecture
 
-Two projects in one solution:
+Three projects in one solution:
 
-- **AevumLux** — WinUI 3 app. Views (XAML only, no logic), ViewModels, DI bootstrapping in `App.xaml.cs`.
-- **AevumLux.Core** — Class library with zero UI dependency. All business logic, services, models, repositories and security utilities live here.
+- **AevumLux** — the WinUI 3 desktop app. Strict MVVM: Views are XAML only, all logic lives in ViewModels.
+- **AevumLux.Core** — class library with zero UI dependency. All business logic, services, models and repositories live here, injected through interfaces via `Microsoft.Extensions.DependencyInjection`.
+- **AevumLux.TestIdentityServer** — a small, self-hosted OpenIddict-based OAuth/OIDC server used to drive Flow Simulator's live testing. Runs standalone; see its own `SETUP.md`/`SCENARIOS.md`.
 
-Key patterns:
-- Strict MVVM — no logic in code-behind files
-- All services injected through interfaces via `Microsoft.Extensions.DependencyInjection`
-- Repository pattern over LiteDB — no raw database calls outside repositories
-- DPAPI available (`ICryptoService`/`DpapiCryptoService`) for client secrets before they touch the database — not yet exercised, since Provider Manager doesn't store client secrets yet
-- Nullable reference types enabled, guard clauses on all public methods
-- Feature-based folder structure
-- App data (`aevumlux.db`, `settings.json`) lives at `%LOCALAPPDATA%\AevumLux\` — the app is unpackaged (no MSIX identity), so WinUI's `ApplicationData` API is not used for persistence anywhere in this project
-
-```
-AevumLux/
-├── AevumLux/                   # WinUI 3 app
-│   ├── Views/                  # XAML pages — one folder per feature
-│   ├── ViewModels/             # One ViewModel per page
-│   └── App.xaml.cs             # DI container registration
-│
-└── AevumLux.Core/              # Class library — no UI dependency
-    ├── Models/
-    ├── Services/Interfaces/
-    ├── Services/Implementations/
-    ├── Repositories/Interfaces/
-    ├── Repositories/Implementations/
-    ├── Security/               # ICryptoService, DpapiCryptoService
-    └── Helpers/                # Guard
-```
+App data (`aevumlux.db`, `settings.json`) lives at `%LOCALAPPDATA%\AevumLux\` — the app is unpackaged, so no MSIX/`ApplicationData` persistence is used.
 
 ---
 
@@ -108,27 +72,29 @@ AevumLux/
 - .NET 8 SDK
 - Windows App SDK 1.6
 
-### Build
+### Build and run
 
 ```
-git clone https://github.com/yourusername/AevumLux.git
+git clone https://github.com/AndreasGkesos/AevumLux.git
 cd AevumLux
 # Open AevumLux.sln in Visual Studio 2022
-# Set AevumLux as startup project
+# Set AevumLux as the startup project
 # Build and run (x64 recommended)
 ```
 
----
+Discovery Explorer, JWT Decoder, Token Validator, Claims Inspector, JWKS Explorer, Scope Analyser and Token Diff all work immediately against any real OIDC provider's issuer URL.
 
-## Screenshots
+### Trying Flow Simulator
 
-*Coming soon.*
+Flow Simulator needs a running OAuth/OIDC server to actually call. This repo includes one for exactly that — `AevumLux.TestIdentityServer`, a small self-hosted OpenIddict-based server with a handful of pre-seeded test scenarios (happy paths and common misconfigurations). Run it alongside the main app:
 
----
+```
+# From a second terminal / a second Visual Studio instance:
+cd AevumLux.TestIdentityServer
+dotnet run
+```
 
-## Contributing
-
-This is a portfolio project. Issues and pull requests are welcome.
+See `AevumLux.TestIdentityServer/SETUP.md` for setup details and `SCENARIOS.md` for what each seeded scenario demonstrates.
 
 ---
 

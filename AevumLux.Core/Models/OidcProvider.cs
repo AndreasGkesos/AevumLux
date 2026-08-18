@@ -20,12 +20,6 @@ public sealed class OidcProvider
     /// <summary>Gets or sets the OAuth 2.0 client ID.</summary>
     public string ClientId { get; set; } = string.Empty;
 
-    /// <summary>
-    /// Gets or sets the DPAPI-encrypted client secret.
-    /// Never store the raw secret; always encrypt before persisting.
-    /// </summary>
-    public string? EncryptedClientSecret { get; set; }
-
     /// <summary>Gets or sets the environment label (e.g. Development, Staging, Production).</summary>
     public string Environment { get; set; } = ProviderEnvironment.Development;
 

@@ -1,7 +1,6 @@
 using AevumLux.Core.Repositories;
 using AevumLux.Core.Repositories.Implementations;
 using AevumLux.Core.Repositories.Interfaces;
-using AevumLux.Core.Security;
 using AevumLux.Core.Services.Implementations;
 using AevumLux.Core.Services.Interfaces;
 using AevumLux.Services;
@@ -65,7 +64,6 @@ public partial class App : Application
         var dbPath = Path.Combine(appDataDir, "aevumlux.db");
 
         services.AddSingleton(_ => new LiteDbContext(dbPath));
-        services.AddSingleton<ICryptoService, DpapiCryptoService>();
         services.AddSingleton<IAppSettingsService>(_ => new AppSettingsService(appDataDir));
         services.AddHttpClient<IDiscoveryService, DiscoveryService>();
         services.AddHttpClient<ITokenValidationService, TokenValidationService>();

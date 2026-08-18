@@ -1,7 +1,6 @@
 {
   "name": "cc-happy-path",
   "description": "Everything correctly configured. Client Credentials request succeeds and returns a valid access token.",
-  "accessTokenLifetime": "00:15:00",
   "clients": [
     {
       "clientId": "cc-happy-path",

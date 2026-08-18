@@ -1,0 +1,17 @@
+{
+  "name": "ac-wrong-redirect",
+  "description": "The server has the client registered with a different redirect URI than the one AevumLux will send. Demonstrates the invalid_client / redirect URI mismatch error — one of the most common Authorization Code setup mistakes.",
+  "clients": [
+    {
+      "clientId": "ac-wrong-redirect",
+      "clientSecret": "",
+      "displayName": "AC - Wrong Redirect",
+      "allowedScopes": [ "api", "offline_access" ],
+      "grantTypes": [ "authorization_code", "refresh_token" ],
+      "redirectUris": [ "http://localhost:9999/callback" ],
+      "isPublicClient": true,
+      "testUsername": "test-user",
+      "testPassword": "test-password"
+    }
+  ]
+}

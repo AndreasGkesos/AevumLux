@@ -1,0 +1,15 @@
+{
+  "name": "ropc-happy-path",
+  "description": "ROPC (Resource Owner Password Credentials) succeeds — the client collects a username and password directly and posts them to the token endpoint. Included so Flow Simulator can show, with a real request, exactly what the anti-pattern is: the client app (not the identity provider) is the thing that sees the raw password.",
+  "clients": [
+    {
+      "clientId": "ropc-happy-path",
+      "clientSecret": "ropc-happy-path-secret",
+      "displayName": "ROPC - Happy Path",
+      "allowedScopes": [ "api" ],
+      "grantTypes": [ "password" ],
+      "redirectUris": [],
+      "isPublicClient": false
+    }
+  ]
+}

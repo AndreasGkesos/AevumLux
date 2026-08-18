@@ -1,34 +1,13 @@
 {
   "$schema": "https://json.schemastore.org/launchsettings.json",
   "profiles": {
-    "cc-happy-path": {
+    "AevumLux.TestIdentityServer": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": false,
       "applicationUrl": "http://localhost:7087",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "ACTIVE_SCENARIO": "cc-happy-path"
-      }
-    },
-    "cc-wrong-secret": {
-      "commandName": "Project",
-      "dotnetRunMessages": true,
-      "launchBrowser": false,
-      "applicationUrl": "http://localhost:7087",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "ACTIVE_SCENARIO": "cc-wrong-secret"
-      }
-    },
-    "cc-expired-tokens": {
-      "commandName": "Project",
-      "dotnetRunMessages": true,
-      "launchBrowser": false,
-      "applicationUrl": "http://localhost:7087",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "ACTIVE_SCENARIO": "cc-expired-tokens"
+        "ASPNETCORE_ENVIRONMENT": "Development"
       }
     }
   }

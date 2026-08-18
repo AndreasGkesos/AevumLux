@@ -1,13 +1,13 @@
 {
   "name": "cc-expired-tokens",
-  "description": "Access tokens are issued with a 5 second lifetime, so they are already expired by the time you inspect them in AevumLux. Demonstrates Token Validator's expiry check failing on an otherwise-valid token.",
-  "accessTokenLifetime": "00:00:05",
+  "description": "Access tokens issued to this client have a 1 second lifetime — the shortest OpenIddict supports (it truncates to whole seconds) — so they are already expired by the time you inspect them in AevumLux. Demonstrates Token Validator's expiry check failing on an otherwise-valid token.",
   "clients": [
     {
       "clientId": "cc-expired-tokens",
       "clientSecret": "expired-tokens-secret",
       "displayName": "CC - Expired Tokens",
-      "allowedScopes": [ "api" ]
+      "allowedScopes": [ "api" ],
+      "accessTokenLifetime": "00:00:01"
     }
   ]
 }

@@ -1,0 +1,17 @@
+{
+  "name": "dc-happy-path",
+  "description": "Everything correctly configured. Device Code flow succeeds end to end: device authorization request, user_code/verification_uri shown, polling the token endpoint, and a valid access token once the (auto-approved) test user 'signs in'.",
+  "clients": [
+    {
+      "clientId": "dc-happy-path",
+      "clientSecret": "",
+      "displayName": "DC - Happy Path",
+      "allowedScopes": [ "api" ],
+      "grantTypes": [ "device_code" ],
+      "redirectUris": [],
+      "isPublicClient": true,
+      "testUsername": "test-user",
+      "testPassword": "test-password"
+    }
+  ]
+}

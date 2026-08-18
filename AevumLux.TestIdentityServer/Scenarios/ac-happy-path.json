@@ -1,0 +1,17 @@
+{
+  "name": "ac-happy-path",
+  "description": "Everything correctly configured. Authorization Code + PKCE flow succeeds end to end: authorize redirect, code exchange, and a valid access + refresh token pair.",
+  "clients": [
+    {
+      "clientId": "ac-happy-path",
+      "clientSecret": "",
+      "displayName": "AC - Happy Path",
+      "allowedScopes": [ "api", "offline_access" ],
+      "grantTypes": [ "authorization_code", "refresh_token" ],
+      "redirectUris": [ "http://localhost:7890/callback" ],
+      "isPublicClient": true,
+      "testUsername": "test-user",
+      "testPassword": "test-password"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "implicit-happy-path",
+  "description": "Implicit flow succeeds — the authorize redirect returns an access token directly in the URL fragment, with no code-exchange step. Included so Flow Simulator can show, with a real token, exactly where the anti-pattern shows up (the token sitting in the URL rather than coming back over a server-to-server POST).",
+  "clients": [
+    {
+      "clientId": "implicit-happy-path",
+      "clientSecret": "",
+      "displayName": "Implicit - Happy Path",
+      "allowedScopes": [ "api" ],
+      "grantTypes": [ "implicit" ],
+      "redirectUris": [ "http://localhost:7890/callback" ],
+      "isPublicClient": true,
+      "testUsername": "test-user",
+      "testPassword": "test-password"
+    }
+  ]
+}

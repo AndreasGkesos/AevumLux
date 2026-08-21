@@ -24,7 +24,13 @@
                 Opacity="0.6" />
         </StackPanel>
 
-        <StackPanel Grid.Row="1" Spacing="16" MaxWidth="560" HorizontalAlignment="Left">
+        <Grid Grid.Row="1" ColumnSpacing="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+        <StackPanel Grid.Column="0" Spacing="16">
             <Border
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
@@ -108,5 +114,31 @@
                 </StackPanel>
             </Border>
         </StackPanel>
+
+        <StackPanel Grid.Column="1" Spacing="16">
+            <Border
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="16">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Logs" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                    <TextBlock
+                        Text="AevumLux writes a rolling log file for diagnostics and troubleshooting."
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Opacity="0.6"
+                        TextWrapping="Wrap" />
+                    <Button Content="Open Log Folder" Command="{x:Bind ViewModel.OpenLogFolderCommand}" />
+                    <TextBlock
+                        Text="{x:Bind ViewModel.LogFolderPath, Mode=OneTime}"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Opacity="0.5"
+                        TextWrapping="Wrap"
+                        IsTextSelectionEnabled="True" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+        </Grid>
     </Grid>
 </Page>

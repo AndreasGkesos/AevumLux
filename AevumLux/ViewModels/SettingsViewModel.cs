@@ -1,5 +1,7 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using AevumLux.Core.Services.Interfaces;
+using AevumLux.Logging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
@@ -30,6 +32,8 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     public string TestIdpLocalUrl => _testIdp.LocalUrl;
 
+    public string LogFolderPath => LogPaths.LogFolder;
+
     public SettingsViewModel(IAppSettingsService appSettings, ITestIdpProcessService testIdp, ILogger<SettingsViewModel> logger)
     {
         _appSettings = appSettings;
@@ -51,6 +55,13 @@ public sealed partial class SettingsViewModel : ObservableObject
         _appSettings.ShowFlowExplanations = value;
         if (_initialized)
             _logger.LogInformation("Setting changed. Setting={Setting} NewValue={NewValue}", nameof(ShowFlowExplanations), value);
+    }
+
+    [RelayCommand]
+    private void OpenLogFolder()
+    {
+        Directory.CreateDirectory(LogPaths.LogFolder);
+        Process.Start("explorer.exe", LogPaths.LogFolder);
     }
 
     [RelayCommand(CanExecute = nameof(CanStartTestIdp))]

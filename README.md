@@ -14,6 +14,7 @@ Navigation is organised into tiers, roughly by how central each page is to real 
 | JWT Decoder | Decode any JWT — header, payload, signature — with human-readable field names and expiry status | Built |
 | Token Validator | Validate signature, expiry, issuer and audience against a JWKS with per-check results | Built |
 | Session History | In-session log of all activity, cleared on close | Backend logs everything already; page UI not built yet |
+| App Diagnostics | Global unhandled-exception handling (all three .NET/WinUI hooks) with a friendly crash dialog, plus structured Serilog logging (rolling daily file, 30-day retention, 10MB size cap) with an audit trail for every meaningful user action across every feature | Built |
 | Claims Inspector | Claims grouped by category with plain English descriptions, plus security observations (weak/missing algorithms, missing claims, long-lived tokens) | Built |
 | JWKS Explorer | Visual display of all keys with kid matching against a provided token | Built |
 | Scope Analyser | Standard vs custom scope classification, plain English descriptions, and cross-check against claims actually present in the token | Built |
@@ -21,7 +22,7 @@ Navigation is organised into tiers, roughly by how central each page is to real 
 | Provider Manager | Save named providers (name, issuer URL, JWKS URI) for quick reuse | Built (thin — no client secrets/flow config yet, not yet wired into other pages) |
 | Flow Simulator | Step-by-step simulation of OAuth 2.0 / OIDC flows (Authorization Code + PKCE, Client Credentials, Device Code, Refresh Token, Implicit, ROPC) with full, live HTTP request/response visibility, shown as a two-column client/IdP timeline | Built and verified against the bundled AevumLux.TestIdentityServer; not tested against real-world providers |
 | Flow Explanations | Static reference — one page per flow, what it is, real-world usage, request/response contract | Built |
-| Settings | Toggle for showing/hiding Flow Explanations and per-step teaching text in Flow Simulator; when on, also shows the Test Identity Provider's status, Start/Stop controls, local URL and live log | Minimal |
+| Settings | Toggle for showing/hiding Flow Explanations and per-step teaching text in Flow Simulator (when on, also shows the Test Identity Provider's status, Start/Stop controls, local URL and live log); an always-visible Logs card with an Open Log Folder button, the resolved log path, and a live-adjustable log level (Debug/Information/Warning) | Minimal |
 
 ---
 
@@ -61,6 +62,8 @@ Three projects in one solution:
 - **AevumLux.Installer** — a WiX Toolset project that packages AevumLux and the published TestIdentityServer into one self-contained MSI installer. Lives outside the `.sln` (a different toolchain, not something you build/debug day to day) — see "Building the installer" below.
 
 App data (`aevumlux.db`, `settings.json`) lives at `%LOCALAPPDATA%\AevumLux\` — the app is unpackaged, so no MSIX/`ApplicationData` persistence is used.
+
+Logs (`aevumlux-{date}.log`) live at `%LOCALAPPDATA%\AevumLux\Logs\` — daily rolling, 30-day retention, 10MB per-file size cap. Every unhandled exception, plus an audit trail of meaningful user actions across every feature, is logged there via Serilog through the standard `ILogger<T>` pattern. Open the folder directly from Settings, or adjust the minimum log level (Debug/Information/Warning) live without restarting.
 
 ---
 

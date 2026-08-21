@@ -68,12 +68,4 @@ public sealed partial class SettingsViewModel : ObservableObject
             while (TestIdpLog.Count > MaxLogLines)
                 TestIdpLog.RemoveAt(0);
         });
-
-    /// <summary>
-    /// TEMPORARY — deliberately throws so the global exception handler pipeline (log write +
-    /// crash dialog) can be verified manually. Remove once confirmed working.
-    /// </summary>
-    [RelayCommand]
-    private void TriggerTestCrash() =>
-        throw new InvalidOperationException("This is a deliberate test exception triggered from Settings to verify the global exception handler.");
 }

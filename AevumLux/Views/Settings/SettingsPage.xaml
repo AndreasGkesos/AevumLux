@@ -107,23 +107,6 @@
                     </Border>
                 </StackPanel>
             </Border>
-
-            <Border
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource SystemFillColorCriticalBrush}"
-                BorderThickness="1"
-                CornerRadius="8"
-                Padding="16">
-                <StackPanel Spacing="8">
-                    <TextBlock Text="Debug: Test Crash Handler" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                    <TextBlock
-                        Text="Throws a deliberate test exception to verify the global exception handler — the crash gets logged and the &quot;Something went wrong&quot; dialog should appear. Temporary; remove once confirmed."
-                        Style="{StaticResource CaptionTextBlockStyle}"
-                        Opacity="0.6"
-                        TextWrapping="Wrap" />
-                    <Button Content="Trigger Test Crash" Command="{x:Bind ViewModel.TriggerTestCrashCommand}" />
-                </StackPanel>
-            </Border>
         </StackPanel>
     </Grid>
 </Page>

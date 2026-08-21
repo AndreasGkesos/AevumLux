@@ -1,17 +1,14 @@
-using System.Diagnostics;
 using AevumLux.Core.Repositories;
 using AevumLux.Core.Repositories.Implementations;
 using AevumLux.Core.Repositories.Interfaces;
 using AevumLux.Core.Services.Implementations;
 using AevumLux.Core.Services.Interfaces;
-using AevumLux.Logging;
 using AevumLux.Services;
 using AevumLux.ViewModels;
 using AevumLux.Views.Shell;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
 
 namespace AevumLux;
 
@@ -24,15 +21,9 @@ public partial class App : Application
     /// <summary>The application-wide service provider. Available after <see cref="OnLaunched"/>.</summary>
     public static IServiceProvider Services { get; private set; } = null!;
 
-    private ShellWindow? _shellWindow;
-
     public App()
     {
         InitializeComponent();
-
-        UnhandledException += OnAppUnhandledException;
-        TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
-        AppDomain.CurrentDomain.UnhandledException += OnDomainUnhandledException;
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
@@ -45,81 +36,9 @@ public partial class App : Application
         var testIdpProcessService = Services.GetRequiredService<ITestIdpProcessService>();
         _ = testIdpProcessService.EnsurePublishedAsync();
 
-        _shellWindow = new ShellWindow();
-        _shellWindow.Closed += (_, _) => (Services as IDisposable)?.Dispose();
-        _shellWindow.Activate();
-    }
-
-    private void OnAppUnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
-    {
-        e.Handled = true;
-        HandleUnhandledException(e.Exception);
-    }
-
-    private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
-    {
-        e.SetObserved();
-        HandleUnhandledException(e.Exception);
-    }
-
-    private void OnDomainUnhandledException(object sender, System.UnhandledExceptionEventArgs e)
-    {
-        if (e.ExceptionObject is Exception ex)
-            HandleUnhandledException(ex);
-    }
-
-    /// <summary>
-    /// Logs the exception to disk first, then attempts to show the crash dialog. Never allowed
-    /// to throw itself — a failure here must not take down the process any harder than it
-    /// already is.
-    /// </summary>
-    private void HandleUnhandledException(Exception exception)
-    {
-        try
-        {
-            WriteCrashLog(exception);
-        }
-        catch
-        {
-            // Logging must never be the reason the crash handler itself crashes.
-        }
-
-        try
-        {
-            if (_shellWindow?.Content?.XamlRoot is { } xamlRoot)
-                _ = ShowCrashDialogAsync(xamlRoot);
-        }
-        catch
-        {
-            // No window/XamlRoot available yet (e.g. crash during startup) — logging above is
-            // the best we can do.
-        }
-    }
-
-    private static void WriteCrashLog(Exception exception)
-    {
-        Directory.CreateDirectory(LogPaths.LogFolder);
-        var entry = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} [FATAL] Unhandled exception{Environment.NewLine}{exception}{Environment.NewLine}{Environment.NewLine}";
-        File.AppendAllText(LogPaths.CurrentLogFile, entry);
-    }
-
-    private static async Task ShowCrashDialogAsync(XamlRoot xamlRoot)
-    {
-        var dialog = new ContentDialog
-        {
-            Title = "Something went wrong",
-            Content = "AevumLux encountered an unexpected error. The details have been saved to the log file.",
-            PrimaryButtonText = "Open Log Folder",
-            CloseButtonText = "Close",
-            XamlRoot = xamlRoot,
-        };
-
-        var result = await dialog.ShowAsync();
-        if (result == ContentDialogResult.Primary)
-        {
-            Directory.CreateDirectory(LogPaths.LogFolder);
-            Process.Start("explorer.exe", LogPaths.LogFolder);
-        }
+        var window = new ShellWindow();
+        window.Closed += (_, _) => (Services as IDisposable)?.Dispose();
+        window.Activate();
     }
 
     private static IServiceProvider BuildServiceProvider()

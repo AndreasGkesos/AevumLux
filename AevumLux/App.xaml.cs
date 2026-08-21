@@ -1,14 +1,17 @@
+using System.Diagnostics;
 using AevumLux.Core.Repositories;
 using AevumLux.Core.Repositories.Implementations;
 using AevumLux.Core.Repositories.Interfaces;
 using AevumLux.Core.Services.Implementations;
 using AevumLux.Core.Services.Interfaces;
+using AevumLux.Logging;
 using AevumLux.Services;
 using AevumLux.ViewModels;
 using AevumLux.Views.Shell;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 
 namespace AevumLux;
 
@@ -21,9 +24,15 @@ public partial class App : Application
     /// <summary>The application-wide service provider. Available after <see cref="OnLaunched"/>.</summary>
     public static IServiceProvider Services { get; private set; } = null!;
 
+    private ShellWindow? _shellWindow;
+
     public App()
     {
         InitializeComponent();
+
+        UnhandledException += OnAppUnhandledException;
+        TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+        AppDomain.CurrentDomain.UnhandledException += OnDomainUnhandledException;
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
@@ -36,9 +45,90 @@ public partial class App : Application
         var testIdpProcessService = Services.GetRequiredService<ITestIdpProcessService>();
         _ = testIdpProcessService.EnsurePublishedAsync();
 
-        var window = new ShellWindow();
-        window.Closed += (_, _) => (Services as IDisposable)?.Dispose();
-        window.Activate();
+        _shellWindow = new ShellWindow();
+        _shellWindow.Closed += (_, _) => (Services as IDisposable)?.Dispose();
+        _shellWindow.Activate();
+    }
+
+    private void OnAppUnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
+    {
+        e.Handled = true;
+        HandleUnhandledException(e.Exception, "App.UnhandledException");
+    }
+
+    private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+    {
+        e.SetObserved();
+        HandleUnhandledException(e.Exception, "TaskScheduler.UnobservedTaskException");
+    }
+
+    private void OnDomainUnhandledException(object sender, System.UnhandledExceptionEventArgs e)
+    {
+        var exception = e.ExceptionObject as Exception ?? new Exception($"Non-exception object thrown: {e.ExceptionObject}");
+        HandleUnhandledException(exception, "AppDomain.UnhandledException");
+    }
+
+    private void HandleUnhandledException(Exception exception, string source)
+    {
+        WriteCrashLog(exception, source);
+        TryShowCrashDialog();
+    }
+
+    private static void WriteCrashLog(Exception exception, string source)
+    {
+        try
+        {
+            Directory.CreateDirectory(LogPaths.LogFolder);
+            var entry =
+                $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] UNHANDLED EXCEPTION ({source}){Environment.NewLine}" +
+                $"{exception}{Environment.NewLine}{Environment.NewLine}";
+            File.AppendAllText(LogPaths.CurrentLogFile, entry);
+        }
+        catch
+        {
+            // Logging must never itself crash the crash handler.
+        }
+    }
+
+    private void TryShowCrashDialog()
+    {
+        try
+        {
+            var window = _shellWindow;
+            var xamlRoot = window?.Content?.XamlRoot;
+            if (window is null || xamlRoot is null)
+                return;
+
+            _ = window.DispatcherQueue.TryEnqueue(async () =>
+            {
+                try
+                {
+                    var dialog = new ContentDialog
+                    {
+                        XamlRoot = xamlRoot,
+                        Title = "Something went wrong",
+                        Content = "AevumLux encountered an unexpected error. The details have been saved to the log file.",
+                        PrimaryButtonText = "Open Log Folder",
+                        CloseButtonText = "Close",
+                    };
+
+                    var result = await dialog.ShowAsync();
+                    if (result == ContentDialogResult.Primary)
+                    {
+                        Directory.CreateDirectory(LogPaths.LogFolder);
+                        Process.Start("explorer.exe", LogPaths.LogFolder);
+                    }
+                }
+                catch
+                {
+                    // Never let the crash dialog itself crash the app.
+                }
+            });
+        }
+        catch
+        {
+            // Never let the crash dialog itself crash the app.
+        }
     }
 
     private static IServiceProvider BuildServiceProvider()

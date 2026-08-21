@@ -12,6 +12,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Serilog;
+using Serilog.Extensions.Logging;
 
 namespace AevumLux;
 
@@ -26,6 +28,15 @@ public partial class App : Application
 
     private ShellWindow? _shellWindow;
 
+    /// <summary>
+    /// Bootstrapped in the constructor so it's available to log exceptions that occur before
+    /// <see cref="Services"/> is built (or if building it fails). <see cref="RegisterInfrastructure"/>
+    /// wires this same instance into the DI <see cref="ILoggerFactory"/> via AddSerilog, so
+    /// application code always logs through the standard ILogger&lt;T&gt; pattern — this field
+    /// exists solely for the crash handler's early-failure case, never called directly elsewhere.
+    /// </summary>
+    private static readonly Serilog.ILogger RootLogger = BuildRootLogger();
+
     public App()
     {
         InitializeComponent();
@@ -35,9 +46,27 @@ public partial class App : Application
         AppDomain.CurrentDomain.UnhandledException += OnDomainUnhandledException;
     }
 
+    private static Serilog.ILogger BuildRootLogger()
+    {
+        Directory.CreateDirectory(LogPaths.LogFolder);
+        return new LoggerConfiguration()
+            .MinimumLevel.Information()
+            .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
+            .MinimumLevel.Override("System.Net.Http.HttpClient", Serilog.Events.LogEventLevel.Warning)
+            .Enrich.FromLogContext()
+            .WriteTo.File(
+                Path.Combine(LogPaths.LogFolder, "aevumlux-.log"),
+                rollingInterval: RollingInterval.Day,
+                retainedFileCountLimit: 30,
+                outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {SourceContext}: {Message}{NewLine}{Exception}")
+            .CreateLogger();
+    }
+
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         Services = BuildServiceProvider();
+
+        Services.GetRequiredService<ILogger<App>>().LogInformation("App started at {StartedAt}", DateTime.Now);
 
         var providerRepository = Services.GetRequiredService<IProviderRepository>();
         _ = providerRepository.SeedIfMissingAsync(ScenarioProviderSeeds.GetAll());
@@ -78,11 +107,7 @@ public partial class App : Application
     {
         try
         {
-            Directory.CreateDirectory(LogPaths.LogFolder);
-            var entry =
-                $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] UNHANDLED EXCEPTION ({source}){Environment.NewLine}" +
-                $"{exception}{Environment.NewLine}{Environment.NewLine}";
-            File.AppendAllText(LogPaths.CurrentLogFile, entry);
+            RootLogger.ForContext<App>().Error(exception, "Unhandled exception via {Source}", source);
         }
         catch
         {
@@ -148,6 +173,7 @@ public partial class App : Application
         services.AddLogging(builder =>
         {
             builder.AddDebug();
+            builder.AddSerilog(RootLogger, dispose: false);
             builder.SetMinimumLevel(LogLevel.Debug);
         });
 

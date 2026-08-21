@@ -4,6 +4,7 @@ using AevumLux.Core.Models;
 using AevumLux.Core.Services.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 
 namespace AevumLux.ViewModels;
 
@@ -12,6 +13,7 @@ public sealed partial class JwksExplorerViewModel : ObservableObject
 {
     private readonly ITokenValidationService _tokenValidationService;
     private readonly IJwtService _jwtService;
+    private readonly ILogger<JwksExplorerViewModel> _logger;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(FetchCommand))]
@@ -34,10 +36,11 @@ public sealed partial class JwksExplorerViewModel : ObservableObject
 
     public ObservableCollection<ExplorerKey> Keys { get; } = [];
 
-    public JwksExplorerViewModel(ITokenValidationService tokenValidationService, IJwtService jwtService)
+    public JwksExplorerViewModel(ITokenValidationService tokenValidationService, IJwtService jwtService, ILogger<JwksExplorerViewModel> logger)
     {
         _tokenValidationService = tokenValidationService;
         _jwtService = jwtService;
+        _logger = logger;
     }
 
     [RelayCommand(CanExecute = nameof(CanFetch))]
@@ -48,23 +51,29 @@ public sealed partial class JwksExplorerViewModel : ObservableObject
         Keys.Clear();
         IsBusy = true;
 
+        var jwksUri = JwksUri.Trim();
+
         try
         {
-            var jwks = await _tokenValidationService.FetchJwksAsync(JwksUri.Trim(), cancellationToken);
+            var jwks = await _tokenValidationService.FetchJwksAsync(jwksUri, cancellationToken);
             var tokenKid = TryExtractKid(RawToken);
 
             foreach (var key in jwks.Keys)
                 Keys.Add(BuildExplorerKey(key, tokenKid));
 
             HasResult = true;
+
+            _logger.LogInformation("JWKS fetched. ProviderUrl={ProviderUrl} KeyCount={KeyCount}", jwksUri, jwks.Keys.Count);
         }
         catch (HttpRequestException ex)
         {
             ErrorMessage = $"Could not fetch the JWKS document. Check the URL and your connection.\n\nDetail: {ex.Message}";
+            _logger.LogWarning(ex, "JWKS fetch failed. ProviderUrl={ProviderUrl}", jwksUri);
         }
         catch (Exception ex)
         {
             ErrorMessage = $"Unexpected error: {ex.Message}";
+            _logger.LogError(ex, "JWKS fetch failed unexpectedly. ProviderUrl={ProviderUrl}", jwksUri);
         }
         finally
         {

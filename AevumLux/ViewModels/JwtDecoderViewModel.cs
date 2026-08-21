@@ -4,6 +4,7 @@ using AevumLux.Core.Models;
 using AevumLux.Core.Services.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 
 namespace AevumLux.ViewModels;
 
@@ -11,6 +12,7 @@ public sealed partial class JwtDecoderViewModel : ObservableObject
 {
     private readonly IJwtService _jwtService;
     private readonly ISessionHistoryService _sessionHistory;
+    private readonly ILogger<JwtDecoderViewModel> _logger;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(DecodeCommand))]
@@ -37,10 +39,11 @@ public sealed partial class JwtDecoderViewModel : ObservableObject
     public ObservableCollection<ClaimRow> HeaderClaims { get; } = [];
     public ObservableCollection<ClaimRow> PayloadClaims { get; } = [];
 
-    public JwtDecoderViewModel(IJwtService jwtService, ISessionHistoryService sessionHistory)
+    public JwtDecoderViewModel(IJwtService jwtService, ISessionHistoryService sessionHistory, ILogger<JwtDecoderViewModel> logger)
     {
         _jwtService = jwtService;
         _sessionHistory = sessionHistory;
+        _logger = logger;
     }
 
     [RelayCommand(CanExecute = nameof(CanDecode))]
@@ -74,14 +77,23 @@ public sealed partial class JwtDecoderViewModel : ObservableObject
                 SessionEntryType.JwtDecoded,
                 $"JWT: {Truncate(RawToken.Trim(), 40)}",
                 JsonSerializer.Serialize(info.Payload));
+
+            _logger.LogInformation(
+                "JWT decoded. TokenType={TokenType} Issuer={Issuer} Expiry={Expiry} ClaimNames={ClaimNames}",
+                TokenTypeBadge,
+                info.Payload.TryGetValue("iss", out var iss) ? iss?.ToString() : null,
+                info.ExpiresAt,
+                string.Join(", ", info.Payload.Keys));
         }
         catch (FormatException ex)
         {
             ErrorMessage = $"Invalid token format. Make sure you paste a complete JWT.\n\nDetail: {ex.Message}";
+            _logger.LogWarning(ex, "JWT decode failed: invalid token format.");
         }
         catch (Exception ex)
         {
             ErrorMessage = $"Unexpected error: {ex.Message}";
+            _logger.LogError(ex, "JWT decode failed unexpectedly.");
         }
     }
 

@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using AevumLux.Core.Services.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 using Microsoft.UI.Dispatching;
 
 namespace AevumLux.ViewModels;
@@ -13,7 +14,9 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     private readonly IAppSettingsService _appSettings;
     private readonly ITestIdpProcessService _testIdp;
+    private readonly ILogger<SettingsViewModel> _logger;
     private readonly DispatcherQueue _dispatcherQueue;
+    private readonly bool _initialized;
 
     [ObservableProperty]
     private bool _showFlowExplanations;
@@ -27,10 +30,11 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     public string TestIdpLocalUrl => _testIdp.LocalUrl;
 
-    public SettingsViewModel(IAppSettingsService appSettings, ITestIdpProcessService testIdp)
+    public SettingsViewModel(IAppSettingsService appSettings, ITestIdpProcessService testIdp, ILogger<SettingsViewModel> logger)
     {
         _appSettings = appSettings;
         _testIdp = testIdp;
+        _logger = logger;
         _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
 
         _showFlowExplanations = appSettings.ShowFlowExplanations;
@@ -38,9 +42,16 @@ public sealed partial class SettingsViewModel : ObservableObject
 
         _testIdp.StatusChanged += HandleTestIdpStatusChanged;
         _testIdp.LogLineReceived += HandleTestIdpLogLineReceived;
+
+        _initialized = true;
     }
 
-    partial void OnShowFlowExplanationsChanged(bool value) => _appSettings.ShowFlowExplanations = value;
+    partial void OnShowFlowExplanationsChanged(bool value)
+    {
+        _appSettings.ShowFlowExplanations = value;
+        if (_initialized)
+            _logger.LogInformation("Setting changed. Setting={Setting} NewValue={NewValue}", nameof(ShowFlowExplanations), value);
+    }
 
     [RelayCommand(CanExecute = nameof(CanStartTestIdp))]
     private Task StartTestIdp() => _testIdp.StartAsync();

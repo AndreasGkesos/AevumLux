@@ -3,6 +3,7 @@ using AevumLux.Core.Models;
 using AevumLux.Core.Repositories.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 
 namespace AevumLux.ViewModels;
 
@@ -10,6 +11,7 @@ namespace AevumLux.ViewModels;
 public sealed partial class ProviderManagerViewModel : ObservableObject
 {
     private readonly IProviderRepository _providerRepository;
+    private readonly ILogger<ProviderManagerViewModel> _logger;
 
     [ObservableProperty]
     private string? _errorMessage;
@@ -39,9 +41,10 @@ public sealed partial class ProviderManagerViewModel : ObservableObject
 
     public bool IsEditing => EditingId is not null;
 
-    public ProviderManagerViewModel(IProviderRepository providerRepository)
+    public ProviderManagerViewModel(IProviderRepository providerRepository, ILogger<ProviderManagerViewModel> logger)
     {
         _providerRepository = providerRepository;
+        _logger = logger;
         _ = LoadAsync();
     }
 
@@ -96,6 +99,7 @@ public sealed partial class ProviderManagerViewModel : ObservableObject
     private async Task SaveAsync()
     {
         ErrorMessage = null;
+        var isUpdate = EditingId is not null;
 
         try
         {
@@ -113,10 +117,17 @@ public sealed partial class ProviderManagerViewModel : ObservableObject
             await LoadAsync();
 
             ResetForm();
+
+            _logger.LogInformation(
+                "Provider {Action}. Name={Name} IssuerUrl={IssuerUrl}",
+                isUpdate ? "updated" : "saved",
+                provider.Name,
+                provider.IssuerUrl);
         }
         catch (Exception ex)
         {
             ErrorMessage = $"Could not save provider.\n\nDetail: {ex.Message}";
+            _logger.LogError(ex, "Provider save failed. Name={Name}", EditorName);
         }
     }
 
@@ -132,10 +143,13 @@ public sealed partial class ProviderManagerViewModel : ObservableObject
             await _providerRepository.DeleteAsync(provider.Id);
             Providers.Remove(provider);
             ResetForm();
+
+            _logger.LogInformation("Provider deleted. Name={Name} IssuerUrl={IssuerUrl}", provider.Name, provider.IssuerUrl);
         }
         catch (Exception ex)
         {
             ErrorMessage = $"Could not delete provider.\n\nDetail: {ex.Message}";
+            _logger.LogError(ex, "Provider delete failed. Name={Name}", provider.Name);
         }
     }
 }

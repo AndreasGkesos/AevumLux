@@ -4,6 +4,7 @@ using AevumLux.Core.Models;
 using AevumLux.Core.Services.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 
 namespace AevumLux.ViewModels;
 
@@ -15,6 +16,7 @@ public sealed partial class DiscoveryViewModel : ObservableObject
 {
     private readonly IDiscoveryService _discoveryService;
     private readonly ISessionHistoryService _sessionHistory;
+    private readonly ILogger<DiscoveryViewModel> _logger;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(FetchCommand))]
@@ -42,10 +44,11 @@ public sealed partial class DiscoveryViewModel : ObservableObject
 
     public ObservableCollection<DiscoveryGroup> Groups { get; } = [];
 
-    public DiscoveryViewModel(IDiscoveryService discoveryService, ISessionHistoryService sessionHistory)
+    public DiscoveryViewModel(IDiscoveryService discoveryService, ISessionHistoryService sessionHistory, ILogger<DiscoveryViewModel> logger)
     {
         _discoveryService = discoveryService;
         _sessionHistory = sessionHistory;
+        _logger = logger;
     }
 
     [RelayCommand(CanExecute = nameof(CanFetch))]
@@ -57,9 +60,10 @@ public sealed partial class DiscoveryViewModel : ObservableObject
         RawJson = string.Empty;
         IsBusy = true;
 
+        var issuerUrl = IssuerUrl.Trim();
+
         try
         {
-            var issuerUrl = IssuerUrl.Trim();
             var doc = await _discoveryService.FetchDiscoveryDocumentAsync(issuerUrl, cancellationToken);
 
             RawJson = PrettyPrint(doc.RawJson);
@@ -71,18 +75,23 @@ public sealed partial class DiscoveryViewModel : ObservableObject
                 SessionEntryType.DiscoveryFetched,
                 $"Discovery: {issuerUrl}",
                 doc.RawJson);
+
+            _logger.LogInformation("Discovery document fetched. ProviderUrl={ProviderUrl} Success=true", issuerUrl);
         }
         catch (OperationCanceledException)
         {
             ErrorMessage = "Request cancelled.";
+            _logger.LogInformation("Discovery fetch cancelled. ProviderUrl={ProviderUrl}", issuerUrl);
         }
         catch (HttpRequestException ex)
         {
             ErrorMessage = $"Could not reach the provider. Check the URL and your connection.\n\nDetail: {ex.Message}";
+            _logger.LogWarning(ex, "Discovery document fetch failed. ProviderUrl={ProviderUrl} Success=false", issuerUrl);
         }
         catch (Exception ex)
         {
             ErrorMessage = $"Unexpected error: {ex.Message}";
+            _logger.LogError(ex, "Discovery document fetch failed unexpectedly. ProviderUrl={ProviderUrl} Success=false", issuerUrl);
         }
         finally
         {

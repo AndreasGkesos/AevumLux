@@ -3,6 +3,7 @@ using System.Text.Json;
 using AevumLux.Core.Services.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 
 namespace AevumLux.ViewModels;
 
@@ -10,6 +11,7 @@ namespace AevumLux.ViewModels;
 public sealed partial class ScopeAnalyserViewModel : ObservableObject
 {
     private readonly IJwtService _jwtService;
+    private readonly ILogger<ScopeAnalyserViewModel> _logger;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(AnalyseCommand))]
@@ -26,9 +28,10 @@ public sealed partial class ScopeAnalyserViewModel : ObservableObject
 
     public ObservableCollection<AnalysedScope> Scopes { get; } = [];
 
-    public ScopeAnalyserViewModel(IJwtService jwtService)
+    public ScopeAnalyserViewModel(IJwtService jwtService, ILogger<ScopeAnalyserViewModel> logger)
     {
         _jwtService = jwtService;
+        _logger = logger;
     }
 
     [RelayCommand(CanExecute = nameof(CanAnalyse))]
@@ -46,14 +49,18 @@ public sealed partial class ScopeAnalyserViewModel : ObservableObject
                 Scopes.Add(BuildAnalysedScope(scope, info.Payload));
 
             HasResult = true;
+
+            _logger.LogInformation("Scopes analysed. Scopes={Scopes}", string.Join(" ", Scopes.Select(s => s.Name)));
         }
         catch (FormatException ex)
         {
             ErrorMessage = $"Invalid token format. Make sure you paste a complete JWT.\n\nDetail: {ex.Message}";
+            _logger.LogWarning(ex, "Scope analysis failed: invalid token format.");
         }
         catch (Exception ex)
         {
             ErrorMessage = $"Unexpected error: {ex.Message}";
+            _logger.LogError(ex, "Scope analysis failed unexpectedly.");
         }
     }
 

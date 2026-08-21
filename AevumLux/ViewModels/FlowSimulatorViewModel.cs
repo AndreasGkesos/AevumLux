@@ -5,6 +5,7 @@ using AevumLux.Core.Repositories.Interfaces;
 using AevumLux.Core.Services.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 using Microsoft.UI.Dispatching;
 
 namespace AevumLux.ViewModels;
@@ -33,6 +34,7 @@ public sealed partial class FlowSimulatorViewModel : ObservableObject
     private readonly IProviderRepository _providerRepository;
     private readonly IAppSettingsService _appSettings;
     private readonly ITestIdpProcessService _testIdp;
+    private readonly ILogger<FlowSimulatorViewModel> _logger;
     private readonly DispatcherQueue _dispatcherQueue;
 
     /// <summary>
@@ -136,13 +138,15 @@ public sealed partial class FlowSimulatorViewModel : ObservableObject
         IDiscoveryService discoveryService,
         IProviderRepository providerRepository,
         IAppSettingsService appSettings,
-        ITestIdpProcessService testIdp)
+        ITestIdpProcessService testIdp,
+        ILogger<FlowSimulatorViewModel> logger)
     {
         _flowSimulatorService = flowSimulatorService;
         _discoveryService = discoveryService;
         _providerRepository = providerRepository;
         _appSettings = appSettings;
         _testIdp = testIdp;
+        _logger = logger;
         _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
         _showExplanations = appSettings.ShowFlowExplanations;
         _appSettings.ShowFlowExplanationsChanged += (_, show) => ShowExplanations = show;
@@ -215,6 +219,11 @@ public sealed partial class FlowSimulatorViewModel : ObservableObject
                 Scopes = Scope.Trim(),
             };
 
+            _logger.LogInformation(
+                "Flow started. FlowType={FlowType} Provider={IssuerUrl}",
+                SelectedFlow,
+                runProvider.IssuerUrl);
+
             var discovery = await _discoveryService.FetchDiscoveryDocumentAsync(runProvider.IssuerUrl, cancellationToken);
 
             IAsyncEnumerable<FlowStep> stepStream = SelectedFlow switch
@@ -244,6 +253,22 @@ public sealed partial class FlowSimulatorViewModel : ObservableObject
 
                 HasResult = true;
 
+                // Steps are yielded twice in some flows (InProgress, then Success/Failed once
+                // the request completes) — only log terminal states to avoid double-logging.
+                if (step.Status == FlowStepStatus.Success)
+                {
+                    _logger.LogInformation("Flow step succeeded. FlowType={FlowType} Step={StepTitle}", SelectedFlow, step.Title);
+                }
+                else if (step.Status == FlowStepStatus.Failed)
+                {
+                    _logger.LogWarning(
+                        "Flow step failed. FlowType={FlowType} Step={StepTitle} ErrorCode={ErrorCode} Reason={Reason}",
+                        SelectedFlow,
+                        step.Title,
+                        step.Error?.ErrorCode,
+                        step.Error?.PlainEnglishExplanation);
+                }
+
                 if (step.Status == FlowStepStatus.Success && step.Response?.Body is not null)
                     TryExtractTokens(step.Response.Body);
             }
@@ -251,6 +276,7 @@ public sealed partial class FlowSimulatorViewModel : ObservableObject
         catch (Exception ex)
         {
             ErrorMessage = $"Unexpected error: {ex.Message}";
+            _logger.LogError(ex, "Flow run failed unexpectedly. FlowType={FlowType}", SelectedFlow);
         }
         finally
         {

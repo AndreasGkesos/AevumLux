@@ -3,6 +3,7 @@ using System.Text.Json;
 using AevumLux.Core.Services.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 
 namespace AevumLux.ViewModels;
 
@@ -10,6 +11,7 @@ namespace AevumLux.ViewModels;
 public sealed partial class TokenDiffViewModel : ObservableObject
 {
     private readonly IJwtService _jwtService;
+    private readonly ILogger<TokenDiffViewModel> _logger;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(CompareCommand))]
@@ -31,9 +33,10 @@ public sealed partial class TokenDiffViewModel : ObservableObject
     public ObservableCollection<DiffRow> HeaderDiff { get; } = [];
     public ObservableCollection<DiffRow> PayloadDiff { get; } = [];
 
-    public TokenDiffViewModel(IJwtService jwtService)
+    public TokenDiffViewModel(IJwtService jwtService, ILogger<TokenDiffViewModel> logger)
     {
         _jwtService = jwtService;
+        _logger = logger;
     }
 
     [RelayCommand(CanExecute = nameof(CanCompare))]
@@ -56,14 +59,23 @@ public sealed partial class TokenDiffViewModel : ObservableObject
                 PayloadDiff.Add(row);
 
             HasResult = true;
+
+            var allRows = HeaderDiff.Concat(PayloadDiff).ToList();
+            _logger.LogInformation(
+                "Token diff run. Added={Added} Removed={Removed} Changed={Changed}",
+                allRows.Count(r => r.IsAdded),
+                allRows.Count(r => r.IsRemoved),
+                allRows.Count(r => r.IsChanged));
         }
         catch (FormatException ex)
         {
             ErrorMessage = $"Invalid token format. Make sure both boxes contain a complete JWT.\n\nDetail: {ex.Message}";
+            _logger.LogWarning(ex, "Token diff failed: invalid token format.");
         }
         catch (Exception ex)
         {
             ErrorMessage = $"Unexpected error: {ex.Message}";
+            _logger.LogError(ex, "Token diff failed unexpectedly.");
         }
     }
 

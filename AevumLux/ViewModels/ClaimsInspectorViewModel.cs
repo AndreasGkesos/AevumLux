@@ -4,6 +4,7 @@ using AevumLux.Core.Models;
 using AevumLux.Core.Services.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 
 namespace AevumLux.ViewModels;
 
@@ -12,6 +13,7 @@ public sealed partial class ClaimsInspectorViewModel : ObservableObject
 {
     private readonly IJwtService _jwtService;
     private readonly ISessionHistoryService _sessionHistory;
+    private readonly ILogger<ClaimsInspectorViewModel> _logger;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(InspectCommand))]
@@ -36,10 +38,11 @@ public sealed partial class ClaimsInspectorViewModel : ObservableObject
     [ObservableProperty]
     private bool _hasObservations;
 
-    public ClaimsInspectorViewModel(IJwtService jwtService, ISessionHistoryService sessionHistory)
+    public ClaimsInspectorViewModel(IJwtService jwtService, ISessionHistoryService sessionHistory, ILogger<ClaimsInspectorViewModel> logger)
     {
         _jwtService = jwtService;
         _sessionHistory = sessionHistory;
+        _logger = logger;
     }
 
     [RelayCommand(CanExecute = nameof(CanInspect))]
@@ -82,14 +85,21 @@ public sealed partial class ClaimsInspectorViewModel : ObservableObject
                 SessionEntryType.ClaimsInspected,
                 $"Claims: {Truncate(RawToken.Trim(), 40)}",
                 JsonSerializer.Serialize(info.Payload));
+
+            _logger.LogInformation(
+                "Claims inspected. TokenType={TokenType} ClaimCount={ClaimCount}",
+                info.TokenType,
+                info.Header.Count + info.Payload.Count);
         }
         catch (FormatException ex)
         {
             ErrorMessage = $"Invalid token format. Make sure you paste a complete JWT.\n\nDetail: {ex.Message}";
+            _logger.LogWarning(ex, "Claims inspection failed: invalid token format.");
         }
         catch (Exception ex)
         {
             ErrorMessage = $"Unexpected error: {ex.Message}";
+            _logger.LogError(ex, "Claims inspection failed unexpectedly.");
         }
     }
 

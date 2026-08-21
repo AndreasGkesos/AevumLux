@@ -1,5 +1,6 @@
 using AevumLux.Core.Models;
 using AevumLux.Core.Services.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace AevumLux.Core.Services.Implementations;
 
@@ -12,6 +13,12 @@ public sealed class SessionHistoryService : ISessionHistoryService
     private const int MaxEntries = 200;
 
     private readonly List<SessionEntry> _entries = [];
+    private readonly ILogger<SessionHistoryService> _logger;
+
+    public SessionHistoryService(ILogger<SessionHistoryService> logger)
+    {
+        _logger = logger;
+    }
 
     /// <inheritdoc/>
     public IReadOnlyList<SessionEntry> Entries => _entries.AsReadOnly();
@@ -32,5 +39,10 @@ public sealed class SessionHistoryService : ISessionHistoryService
     }
 
     /// <inheritdoc/>
-    public void Clear() => _entries.Clear();
+    public void Clear()
+    {
+        var count = _entries.Count;
+        _entries.Clear();
+        _logger.LogInformation("Session history cleared. EntriesRemoved={EntriesRemoved}", count);
+    }
 }

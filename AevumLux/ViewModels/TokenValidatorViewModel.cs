@@ -4,6 +4,7 @@ using AevumLux.Core.Models;
 using AevumLux.Core.Services.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 
 namespace AevumLux.ViewModels;
 
@@ -12,6 +13,7 @@ public sealed partial class TokenValidatorViewModel : ObservableObject
 {
     private readonly ITokenValidationService _tokenValidationService;
     private readonly ISessionHistoryService _sessionHistory;
+    private readonly ILogger<TokenValidatorViewModel> _logger;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ValidateCommand))]
@@ -50,10 +52,11 @@ public sealed partial class TokenValidatorViewModel : ObservableObject
 
     public ObservableCollection<ValidationCheck> Checks { get; } = [];
 
-    public TokenValidatorViewModel(ITokenValidationService tokenValidationService, ISessionHistoryService sessionHistory)
+    public TokenValidatorViewModel(ITokenValidationService tokenValidationService, ISessionHistoryService sessionHistory, ILogger<TokenValidatorViewModel> logger)
     {
         _tokenValidationService = tokenValidationService;
         _sessionHistory = sessionHistory;
+        _logger = logger;
     }
 
     [RelayCommand(CanExecute = nameof(CanValidate))]
@@ -64,13 +67,15 @@ public sealed partial class TokenValidatorViewModel : ObservableObject
         Checks.Clear();
         IsBusy = true;
 
+        var token = RawToken.Trim();
+        var jwksUri = JwksUri.Trim();
+        var issuer = ExpectedIssuer.Trim();
+        var audience = string.IsNullOrWhiteSpace(ExpectedAudience) ? null : ExpectedAudience.Trim();
+
+        _logger.LogInformation("Token validation started. Issuer={Issuer} Audience={Audience}", issuer, audience);
+
         try
         {
-            var token = RawToken.Trim();
-            var jwksUri = JwksUri.Trim();
-            var issuer = ExpectedIssuer.Trim();
-            var audience = string.IsNullOrWhiteSpace(ExpectedAudience) ? null : ExpectedAudience.Trim();
-
             var result = await _tokenValidationService.ValidateAsync(token, jwksUri, issuer, audience, cancellationToken);
 
             foreach (var check in result.Checks)
@@ -84,18 +89,31 @@ public sealed partial class TokenValidatorViewModel : ObservableObject
                 SessionEntryType.TokenValidated,
                 $"Validation: {(result.IsValid ? "Passed" : "Failed")} — {issuer}",
                 JsonSerializer.Serialize(result.Checks));
+
+            if (result.IsValid)
+            {
+                _logger.LogInformation("Token validation passed. Issuer={Issuer} Audience={Audience}", issuer, audience);
+            }
+            else
+            {
+                var reason = string.Join("; ", result.Checks.Where(c => !c.Passed).Select(c => $"{c.Name}: {c.FailureReason}"));
+                _logger.LogWarning("Token validation failed. Issuer={Issuer} Audience={Audience} Reason={Reason}", issuer, audience, reason);
+            }
         }
         catch (HttpRequestException ex)
         {
             ErrorMessage = $"Could not fetch the JWKS document. Check the URL and your connection.\n\nDetail: {ex.Message}";
+            _logger.LogWarning(ex, "Token validation failed: could not fetch JWKS. Issuer={Issuer}", issuer);
         }
         catch (FormatException ex)
         {
             ErrorMessage = $"Invalid token format. Make sure you paste a complete JWT.\n\nDetail: {ex.Message}";
+            _logger.LogWarning(ex, "Token validation failed: invalid token format. Issuer={Issuer}", issuer);
         }
         catch (Exception ex)
         {
             ErrorMessage = $"Unexpected error: {ex.Message}";
+            _logger.LogError(ex, "Token validation failed unexpectedly. Issuer={Issuer}", issuer);
         }
         finally
         {

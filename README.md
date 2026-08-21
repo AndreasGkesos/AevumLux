@@ -111,7 +111,7 @@ from the repo root. This publishes both `AevumLux` and `AevumLux.TestIdentitySer
 
 The installer places `AevumLux.exe` and a bundled, pre-published `TestIdp\` folder side by side in `Program Files\AevumLux\` — the same relative layout as a dev build, so the running app finds the test IdP identically either way. It also copies `ReadMe.txt` and `Scenarios.md` alongside the installed exe, since an installed-only user has no repo to read those from.
 
-Run it again after changing app or test-server code to cut a new installer build. Bump `<Version>` in `AevumLux/AevumLux.csproj` and `Product.wxs`'s `Package/Version` together before a real release — installing a newer version over an older one on the same machine upgrades in place (same install folder, user data untouched); running an older MSI over a newer install is blocked with a clear message instead of silently downgrading.
+Run it again after changing app or test-server code to cut a new installer build. `AevumLux/AevumLux.csproj`'s `<Version>` is the single source of truth — bump it before a real release and `build-installer.bat` reads it automatically, passing it into `Product.wxs` as a preprocessor variable, so both the app's assembly version and the MSI's package version always match with no separate edit. Installing a newer version over an older one on the same machine upgrades in place (same install folder, user data untouched); running an older MSI over a newer install is blocked with a clear message instead of silently downgrading.
 
 ---
 

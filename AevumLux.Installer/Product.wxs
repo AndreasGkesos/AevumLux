@@ -2,14 +2,16 @@
      xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui"
      xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
 
-  <!-- Product identity. Version: bump every release, keep in sync with AevumLux.csproj's
-       <Version>. UpgradeCode: set once, NEVER change after the first real release — this is
-       how Windows Installer recognizes a new MSI as an upgrade of this product rather than a
-       separate app. -->
+  <!-- Product identity. Version: passed in via the ProductVersion preprocessor variable
+       (-p:DefineConstants=ProductVersion=... on `dotnet build`) by build-installer.bat, which
+       reads it straight out of AevumLux.csproj's <Version> — that csproj value is the single
+       source of truth, never edited here. UpgradeCode: set once, NEVER change after the first
+       real release — this is how Windows Installer recognizes a new MSI as an upgrade of this
+       product rather than a separate app. -->
   <Package
     Name="AevumLux"
     Manufacturer="Andreas Gkesos"
-    Version="1.0.0"
+    Version="$(var.ProductVersion)"
     UpgradeCode="4c9f6e2a-2f7b-4b0e-9a3d-6b0c8e1a5f21"
     Compressed="yes">
 

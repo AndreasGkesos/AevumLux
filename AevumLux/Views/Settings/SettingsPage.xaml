@@ -130,6 +130,10 @@
                         Opacity="0.6"
                         TextWrapping="Wrap" />
                     <Button Content="Open Log Folder" Command="{x:Bind ViewModel.OpenLogFolderCommand}" />
+                    <ComboBox
+                        Header="Log level"
+                        ItemsSource="{x:Bind ViewModel.LogLevels}"
+                        SelectedItem="{x:Bind ViewModel.SelectedLogLevel, Mode=TwoWay}" />
                     <TextBlock
                         Text="{x:Bind ViewModel.LogFolderPath, Mode=OneTime}"
                         Style="{StaticResource CaptionTextBlockStyle}"

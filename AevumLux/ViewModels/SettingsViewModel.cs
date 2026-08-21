@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Dispatching;
+using Serilog.Events;
 
 namespace AevumLux.ViewModels;
 
@@ -34,6 +35,11 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     public string LogFolderPath => LogPaths.LogFolder;
 
+    public ObservableCollection<string> LogLevels { get; } = ["Debug", "Information", "Warning"];
+
+    [ObservableProperty]
+    private string _selectedLogLevel;
+
     public SettingsViewModel(IAppSettingsService appSettings, ITestIdpProcessService testIdp, ILogger<SettingsViewModel> logger)
     {
         _appSettings = appSettings;
@@ -43,12 +49,36 @@ public sealed partial class SettingsViewModel : ObservableObject
 
         _showFlowExplanations = appSettings.ShowFlowExplanations;
         _testIdpStatus = testIdp.Status;
+        _selectedLogLevel = ToDisplayName(App.LevelSwitch.MinimumLevel);
 
         _testIdp.StatusChanged += HandleTestIdpStatusChanged;
         _testIdp.LogLineReceived += HandleTestIdpLogLineReceived;
 
         _initialized = true;
     }
+
+    partial void OnSelectedLogLevelChanged(string value)
+    {
+        // Logged before applying the new level — a switch to Warning or above would otherwise
+        // filter out its own confirmation message the instant the level is raised.
+        if (_initialized)
+            _logger.LogInformation("Setting changed. Setting={Setting} NewValue={NewValue}", nameof(SelectedLogLevel), value);
+        App.LevelSwitch.MinimumLevel = ToLogEventLevel(value);
+    }
+
+    private static string ToDisplayName(LogEventLevel level) => level switch
+    {
+        LogEventLevel.Debug => "Debug",
+        LogEventLevel.Warning => "Warning",
+        _ => "Information",
+    };
+
+    private static LogEventLevel ToLogEventLevel(string displayName) => displayName switch
+    {
+        "Debug" => LogEventLevel.Debug,
+        "Warning" => LogEventLevel.Warning,
+        _ => LogEventLevel.Information,
+    };
 
     partial void OnShowFlowExplanationsChanged(bool value)
     {

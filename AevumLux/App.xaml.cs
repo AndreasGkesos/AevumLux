@@ -29,6 +29,12 @@ public partial class App : Application
     private ShellWindow? _shellWindow;
 
     /// <summary>
+    /// Lets the minimum log level be changed at runtime (Settings page) without restarting the
+    /// app. Shared between Serilog's pipeline and the Microsoft.Extensions.Logging bridge below.
+    /// </summary>
+    public static readonly Serilog.Core.LoggingLevelSwitch LevelSwitch = new(Serilog.Events.LogEventLevel.Information);
+
+    /// <summary>
     /// Bootstrapped in the constructor so it's available to log exceptions that occur before
     /// <see cref="Services"/> is built (or if building it fails). <see cref="RegisterInfrastructure"/>
     /// wires this same instance into the DI <see cref="ILoggerFactory"/> via AddSerilog, so
@@ -50,7 +56,7 @@ public partial class App : Application
     {
         Directory.CreateDirectory(LogPaths.LogFolder);
         return new LoggerConfiguration()
-            .MinimumLevel.Information()
+            .MinimumLevel.ControlledBy(LevelSwitch)
             .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
             .MinimumLevel.Override("System.Net.Http.HttpClient", Serilog.Events.LogEventLevel.Warning)
             .Enrich.FromLogContext()
@@ -58,6 +64,8 @@ public partial class App : Application
                 Path.Combine(LogPaths.LogFolder, "aevumlux-.log"),
                 rollingInterval: RollingInterval.Day,
                 retainedFileCountLimit: 30,
+                fileSizeLimitBytes: 10 * 1024 * 1024,
+                rollOnFileSizeLimit: true,
                 outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {SourceContext}: {Message}{NewLine}{Exception}")
             .CreateLogger();
     }
@@ -174,7 +182,6 @@ public partial class App : Application
         {
             builder.AddDebug();
             builder.AddSerilog(RootLogger, dispose: false);
-            builder.SetMinimumLevel(LogLevel.Debug);
         });
 
         var appDataDir = Path.Combine(
